@@ -132,8 +132,6 @@ int main(int argc,
         goto done;
     }
 
-    printf("%p\n", mainCtx);
-
 //     if (RuntimeSettingsInit(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: Failed to Initialize RuntimeSettings\n", __func__);
 //         goto done;

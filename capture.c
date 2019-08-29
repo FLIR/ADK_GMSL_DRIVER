@@ -187,124 +187,6 @@ _ReadDeserRegisters(NvCaptureContext *captureCtx)
     return NVMEDIA_STATUS_OK;
 }
 
-// static NvMediaStatus
-// _CheckValidMap(MapInfo *camMap)
-// {
-//     unsigned int i, j, n;
-
-//     // cam_enable correct?
-//     if (camMap->enable != (camMap->enable & 0x1111)) {
-//        LOG_ERR("%s: WRONG command! cam_enable for each cam can only be 0 or 1! 0001 to 1111\n", __func__);
-//        return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     // cam_mask correct?
-//     if (camMap->mask != (camMap->mask & 0x1111)) {
-//        LOG_ERR("%s: WRONG command! cam_mask for each cam can only be 0 or 1! 0000 to 1110\n", __func__);
-//        return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     // cam_enable correct?
-//     if (camMap->csiOut != (camMap->csiOut & 0x3333)) {
-//        LOG_ERR("%s: WRONG command! csi_outmap for each cam can only be 0, 1, 2 or 3! For example: 3210\n", __func__);
-//        return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     // To same csi out?
-//     if (MAP_CHECK_DUPLICATED_OUT(camMap->csiOut)) {
-//        LOG_ERR("%s: WRONG command! csi_outmap has same out number?\n", __func__);
-//        return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     // If mask all enabled links?
-//     if (camMap->mask == camMap->enable) {
-//        LOG_ERR("%s: WRONG command! can not mask all enabled link(s)!\n", __func__);
-//        return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     // Check enabled links csi_out, should start from 0, then 1, 2, 3
-//     n = MAP_COUNT_ENABLED_LINKS(camMap->enable);
-//     for (j = 0; j < n; j++) {
-//         for (i = 0; i < 4; i++) {
-//            if (MAP_LINK_ENABLED(camMap->enable, i)) {
-//                if ((MAP_LINK_CSIOUT(camMap->csiOut, i)) == j) {
-//                    break;
-//                }
-//            }
-//         }
-//         if (i == 4) {
-//            LOG_ERR("%s: WRONG command! csi_outmap didn't match cam_enable or aggregate!\n", __func__);
-//            return NVMEDIA_STATUS_ERROR;
-//         }
-//     }
-
-//    return NVMEDIA_STATUS_OK;
-// }
-
-// static NvMediaStatus
-// _CheckCamReMap(NvCaptureContext *captureCtx,
-//                MapInfo *camMap)
-// {
-//     NvMediaStatus status = NVMEDIA_STATUS_OK;
-//     I2cHandle i2cHandle = NULL;
-//     uint8_t address[2]={0};
-
-//     /* Check Deserializer device ID */
-//     if (testutil_i2c_open(captureCtx->i2cDeviceNum,
-//                           &i2cHandle) < 0) {
-//         LOG_ERR("%s: i2c_open() failed\n", __func__);
-//         return NVMEDIA_STATUS_ERROR;
-//     }
-
-//     address[0] = 0x1E;  /* MAX9286_DEVICE_ID_REGISTER: 0x1E */
-//     testutil_i2c_read_subaddr(i2cHandle,
-//                               captureCtx->captureParams.deserAddress.uIntValue,
-//                               address,
-//                               1,
-//                               &address[1],
-//                               1);
-
-//     if (address[1] == 0x40) {  /* MAX9286_DEVICE_ID: 0x40 */
-//         /* Check if camMap valid */
-//         status = _CheckValidMap(camMap);
-//         if (status != NVMEDIA_STATUS_OK)
-//             goto done;
-
-//         /* Set camera enable */
-//         address[0] = 0x00;  /* register 0x00 bit[3:0] for camera enable */
-//         address[1] = 0xE0 + CAMMAP_4BITSTO_1BIT(camMap->enable);
-//         testutil_i2c_write_subaddr(i2cHandle,
-//                                    captureCtx->captureParams.deserAddress.uIntValue,
-//                                    address,
-//                                    2);
-
-//         if (camMap->mask != CAM_MASK_DEFAULT) {
-//             /* Set camera mask */
-//             address[0] = 0x69;  /* register 0x69 bit[3:0] for camera mask */
-//             address[1] = CAMMAP_4BITSTO_1BIT(camMap->mask);
-//             testutil_i2c_write_subaddr(i2cHandle,
-//                                        captureCtx->captureParams.deserAddress.uIntValue,
-//                                        address,
-//                                        2);
-//         }
-
-//         if (camMap->csiOut != CSI_OUT_DEFAULT) {
-//             /* Set camera csi out map */
-//             address[0] = 0x0B;  /* register 0x0B bit[7:0] for camera csi out order */
-//             address[1] = CAMMAP_4BITSTO_2BITS(camMap->csiOut);
-//             testutil_i2c_write_subaddr(i2cHandle,
-//                                        captureCtx->captureParams.deserAddress.uIntValue,
-//                                        address,
-//                                        2);
-//         }
-//     } else
-//         LOG_DBG("%s: Camera mapping is not supported\n", __func__);
-// done:
-//     if (i2cHandle)
-//             testutil_i2c_close(i2cHandle);
-//     return status;
-// }
-
 static NvMediaStatus
 _SetInterfaceType(CaptureConfigParams *captureParams,
                   NvMediaICPInterfaceType *interfaceType,
@@ -561,7 +443,7 @@ _CaptureThreadFunc(void *data)
             feedImage = NULL;
         }
 
-        /* Get captured frame */ // ANIL: error returned here
+        /* Get captured frame */
         status = NvMediaICPGetFrameEx(icpInst,
                                       CAPTURE_GET_FRAME_TIMEOUT,
                                       &capturedImage);
