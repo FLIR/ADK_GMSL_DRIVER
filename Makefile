@@ -15,7 +15,7 @@ CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -ggdb
 LDFLAGS  = $(NV_PLATFORM_SDK_LIB) $(NV_PLATFORM_TARGET_LIB) $(NV_PLATFORM_LDFLAGS)
 
 OBJS   := main.o
-# OBJS   += capture.o
+OBJS   += capture.o
 # OBJS   += capture_status.o
 OBJS   += check_version.o
 OBJS   += cmdline.o
@@ -24,7 +24,7 @@ OBJS   += cmdline.o
 # OBJS   += grp_activate.o
 # OBJS   += runtime_settings.o
 OBJS   += i2cCommands.o
-# OBJS   += parser.o
+OBJS   += parser.o
 # OBJS   += save.o
 OBJS   += ../utils/log_utils.o
 OBJS   += ../utils/misc_utils.o

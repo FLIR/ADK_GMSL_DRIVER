@@ -10,8 +10,8 @@
 #include <signal.h>
 
 #include "main.h"
-// #include "check_version.h"
-// #include "capture.h"
+#include "check_version.h"
+#include "capture.h"
 // #include "save.h"
 // #include "composite.h"
 // #include "display.h"
@@ -120,17 +120,19 @@ int main(int argc,
         return -1;
     }
 
-//     quit_flag = &mainCtx.quit;
-//     SigSetup();
+    quit_flag = &mainCtx.quit;
+    SigSetup();
 
-//     /* Initialize context */
-//     mainCtx.testArgs = &allArgs;
+    /* Initialize context */
+    mainCtx.testArgs = &allArgs;
 
-//     /* Initialize all the components */
-//     if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize Capture\n", __func__);
-//         goto done;
-//     }
+    /* Initialize all the components */
+    if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Failed to Initialize Capture\n", __func__);
+        goto done;
+    }
+
+    printf("%p\n", mainCtx);
 
 //     if (RuntimeSettingsInit(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: Failed to Initialize RuntimeSettings\n", __func__);
@@ -211,13 +213,13 @@ int main(int argc,
 //         }
 //     }
 
-// done:
+done:
 //     CaptureStatusFini(&mainCtx);
 //     GrpActivationFini(&mainCtx);
 //     DisplayFini(&mainCtx);
 //     CompositeFini(&mainCtx);
 //     SaveFini(&mainCtx);
 //     RuntimeSettingsFini(&mainCtx);
-//     CaptureFini(&mainCtx);
+    CaptureFini(&mainCtx);
     return 0;
 }
