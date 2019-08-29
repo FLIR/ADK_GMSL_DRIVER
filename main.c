@@ -10,13 +10,13 @@
 #include <signal.h>
 
 #include "main.h"
-#include "check_version.h"
-#include "capture.h"
-#include "save.h"
-#include "composite.h"
-#include "display.h"
-#include "grp_activate.h"
-#include "capture_status.h"
+// #include "check_version.h"
+// #include "capture.h"
+// #include "save.h"
+// #include "composite.h"
+// #include "display.h"
+// #include "grp_activate.h"
+// #include "capture_status.h"
 
 /* Quit flag. Out of context structure for sig handling */
 static volatile NvMediaBool *quit_flag;
@@ -116,108 +116,108 @@ int main(int argc,
         return -1;
     }
 
-    if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
-        return -1;
-    }
+    // if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
+    //     return -1;
+    // }
 
-    quit_flag = &mainCtx.quit;
-    SigSetup();
+//     quit_flag = &mainCtx.quit;
+//     SigSetup();
 
-    /* Initialize context */
-    mainCtx.testArgs = &allArgs;
+//     /* Initialize context */
+//     mainCtx.testArgs = &allArgs;
 
-    /* Initialize all the components */
-    if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize Capture\n", __func__);
-        goto done;
-    }
+//     /* Initialize all the components */
+//     if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize Capture\n", __func__);
+//         goto done;
+//     }
 
-    if (RuntimeSettingsInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize RuntimeSettings\n", __func__);
-        goto done;
-    }
+//     if (RuntimeSettingsInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize RuntimeSettings\n", __func__);
+//         goto done;
+//     }
 
-    if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize Save\n", __func__);
-        goto done;
-    }
+//     if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize Save\n", __func__);
+//         goto done;
+//     }
 
-    if (CompositeInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize Composite\n", __func__);
-        goto done;
-    }
+//     if (CompositeInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize Composite\n", __func__);
+//         goto done;
+//     }
 
-    if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize Display\n", __func__);
-        goto done;
-    }
+//     if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize Display\n", __func__);
+//         goto done;
+//     }
 
-    if (GrpActivationInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize GrpActivation\n", __func__);
-        goto done;
-    }
+//     if (GrpActivationInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize GrpActivation\n", __func__);
+//         goto done;
+//     }
 
-    if (CaptureStatusInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize CaptureStatus\n", __func__);
-        goto done;
-    }
+//     if (CaptureStatusInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: Failed to Initialize CaptureStatus\n", __func__);
+//         goto done;
+//     }
 
-    /* Call Proc for each component */
-    if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: CaptureProc Failed\n", __func__);
-        goto done;
-    }
+//     /* Call Proc for each component */
+//     if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: CaptureProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (RuntimeSettingsProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: RuntimeSettingsProc Failed\n", __func__);
-        goto done;
-    }
+//     if (RuntimeSettingsProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: RuntimeSettingsProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: SaveProc Failed\n", __func__);
-        goto done;
-    }
+//     if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: SaveProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (CompositeProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: CompositeProc Failed\n", __func__);
-        goto done;
-    }
+//     if (CompositeProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: CompositeProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: DisplayProc Failed\n", __func__);
-        goto done;
-    }
+//     if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: DisplayProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (GrpActivationProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: ErHandlerProc Failed\n", __func__);
-        goto done;
-    }
+//     if (GrpActivationProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: ErHandlerProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    if (CaptureStatusProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: CmdHandlerProc Failed\n", __func__);
-        goto done;
-    }
+//     if (CaptureStatusProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+//         LOG_ERR("%s: CmdHandlerProc Failed\n", __func__);
+//         goto done;
+//     }
 
-    /* unblock the signals, they will be handled only by the main thread */
-    status = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-    if (0 != status) {
-        LOG_ERR("%s: Failed to unblock signals\n", __func__);
-        goto done;
-    }
+//     /* unblock the signals, they will be handled only by the main thread */
+//     status = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+//     if (0 != status) {
+//         LOG_ERR("%s: Failed to unblock signals\n", __func__);
+//         goto done;
+//     }
 
-    while (!mainCtx.quit) {
-        if (!allArgs.frames.isUsed) {
-            ExecuteNextCommand(&mainCtx);
-        }
-    }
+//     while (!mainCtx.quit) {
+//         if (!allArgs.frames.isUsed) {
+//             ExecuteNextCommand(&mainCtx);
+//         }
+//     }
 
-done:
-    CaptureStatusFini(&mainCtx);
-    GrpActivationFini(&mainCtx);
-    DisplayFini(&mainCtx);
-    CompositeFini(&mainCtx);
-    SaveFini(&mainCtx);
-    RuntimeSettingsFini(&mainCtx);
-    CaptureFini(&mainCtx);
+// done:
+//     CaptureStatusFini(&mainCtx);
+//     GrpActivationFini(&mainCtx);
+//     DisplayFini(&mainCtx);
+//     CompositeFini(&mainCtx);
+//     SaveFini(&mainCtx);
+//     RuntimeSettingsFini(&mainCtx);
+//     CaptureFini(&mainCtx);
     return 0;
 }
