@@ -44,21 +44,10 @@ PrintUsage(void)
     LOG_MSG("                  Default: %d Maximum: %d\n",MIN_BUFFER_POOL_SIZE,NVMEDIA_MAX_CAPTURE_FRAME_BUFFERS);
     LOG_MSG("-wrregs [file]    File name of register script to write to sensor\n");
     LOG_MSG("-rdregs [file]    File name of register dump from sensor\n");
-    LOG_MSG("--pwr_ctrl-off    Disable powering on the camera sensors\n");
-    LOG_MSG("--cam_enable [n]  Enable or disable camera[3210]; enable:1, disable 0\n");
-    LOG_MSG("                  Default: n = 0001\n");
-    LOG_MSG("--cam_mask [n]    Mask or unmask camera[3210]; mask:1, unmask:0\n");
-    LOG_MSG("                  Default: n = 0000\n");
-    LOG_MSG("--csi_outmap [n]  Set csi out order for camera[3210]; 0,1,2 or 3\n");
-    LOG_MSG("                  Default: n = 3210\n");
     LOG_MSG("--vc_enable       Enable virtual channels for capturing the frames\n");
     LOG_MSG("                  VCs are always enabled. This option will be deprecated\n");
     LOG_MSG("--crystalF [MHz]  Crystal Frequency in MHz.\n");
     LOG_MSG("                  Default = 24 MHz\n");
-    LOG_MSG("--nvraw           Save captured Raw image in NvRaw file format.\n");
-    LOG_MSG("                  Valid only for RAW capture and when -sensor is used\n");
-    LOG_MSG("                  NvRaw file format currently supports only RAW12-CombinedCompressed\n");
-    LOG_MSG("                  and Raw12-Linear input formats\n");
     LOG_MSG("--wait [n]        Wait for n frames before capturing the next frame(s)\n");
     LOG_MSG("--miniburst [n]   Capture n frames between wait periods.\n");
     LOG_MSG("                  Default = 1\n");
@@ -96,13 +85,7 @@ ParseArgs(int argc,
     allArgs->numVirtualChannels = 1;
     allArgs->crystalFrequency = 24;
     allArgs->bufferPoolSize = MIN_BUFFER_POOL_SIZE;
-    allArgs->useNvRawFormat = NVMEDIA_FALSE;
     allArgs->useVirtualChannels = NVMEDIA_TRUE;
-
-    allArgs->camMap.enable = CAM_ENABLE_DEFAULT;
-    allArgs->camMap.mask   = CAM_MASK_DEFAULT;
-    allArgs->camMap.csiOut = CSI_OUT_DEFAULT;
-    allArgs->disablePwrCtrl = NVMEDIA_FALSE;
 
     allArgs->windowId = 1;
 
@@ -283,8 +266,6 @@ ParseArgs(int argc,
                     LOG_ERR("--crystalF must be followed by crystal frequency in MHz\n");
                     return NVMEDIA_STATUS_ERROR;
                 }
-            } else if (!strcasecmp(argv[i], "--nvraw")) {
-                allArgs->useNvRawFormat = NVMEDIA_TRUE;
             } else if (!strcasecmp(argv[i], "--aggregate")) {
                 allArgs->useAggregationFlag = NVMEDIA_TRUE;
                 if (bDataAvailable) {
@@ -298,34 +279,6 @@ ParseArgs(int argc,
                 }
             } else if (!strcasecmp(argv[i], "--vc_enable")) {
                 allArgs->useVirtualChannels= NVMEDIA_TRUE;
-            } else if (!strcasecmp(argv[i], "--cam_enable")) {
-                allArgs->useAggregationFlag = NVMEDIA_TRUE;
-                if (bDataAvailable) {
-                    if ((sscanf(argv[++i], "%x", &allArgs->camMap.enable) != 1)) {
-                        LOG_ERR("%s: Invalid camera enable: %s\n", __func__, argv[i]);
-                        return NVMEDIA_STATUS_ERROR;
-                    }
-                    allArgs->numLinks = MAP_COUNT_ENABLED_LINKS(allArgs->camMap.enable);
-                }
-                LOG_INFO("%s: cam_enable %x\n", __func__, allArgs->camMap.enable);
-            } else if (!strcasecmp(argv[i], "--cam_mask")) {
-                if (bDataAvailable) {
-                    if ((sscanf(argv[++i], "%x", &allArgs->camMap.mask) != 1)) {
-                        LOG_ERR("%s: Invalid camera mask: %s\n", __func__, argv[i]);
-                        return NVMEDIA_STATUS_ERROR;
-                    }
-                }
-                LOG_INFO("%s: cam_mask %x\n", __func__, allArgs->camMap.mask);
-            } else if (!strcasecmp(argv[i], "--csi_outmap")) {
-                if (bDataAvailable) {
-                    if ((sscanf(argv[++i], "%x", &allArgs->camMap.csiOut) != 1)) {
-                        LOG_ERR("%s: Invalid csi_outmap: %s\n", __func__, argv[i]);
-                        return NVMEDIA_STATUS_ERROR;
-                    }
-                }
-                LOG_INFO("%s: csi_outmap %x\n", __func__, allArgs->camMap.csiOut);
-            } else if (!strcasecmp(argv[i], "--pwr_ctrl-off")) {
-                allArgs->disablePwrCtrl = NVMEDIA_TRUE;
             } else if (!strcasecmp(argv[i], "--settings")) {
                 if (argv[i + 1] && argv[i + 1][0] != '-') {
                     allArgs->rtSettings.isUsed = NVMEDIA_TRUE;
@@ -369,12 +322,6 @@ ParseArgs(int argc,
                 return NVMEDIA_STATUS_ERROR;
             }
         }
-
-        // NvRaw can be used only if sensor info is specified
-        if (allArgs->useNvRawFormat && !allArgs->sensorInfo) {
-            LOG_ERR("--nvraw cannot be used without -sensor [name] option\n");
-            return NVMEDIA_STATUS_ERROR;
-        }
     }
 
     if (allArgs->numSensors > NVMEDIA_MAX_AGGREGATE_IMAGES) {
@@ -389,8 +336,6 @@ ParseArgs(int argc,
             return NVMEDIA_STATUS_ERROR;
         }
         allArgs->numSensors = allArgs->numLinks;
-    } else {
-        allArgs->camMap.enable = MAP_N_TO_ENABLE(allArgs->numSensors);
     }
 
     // Set the same capture set for all virtual channels

@@ -116,9 +116,9 @@ int main(int argc,
         return -1;
     }
 
-    // if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
-    //     return -1;
-    // }
+    if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
+        return -1;
+    }
 
 //     quit_flag = &mainCtx.quit;
 //     SigSetup();

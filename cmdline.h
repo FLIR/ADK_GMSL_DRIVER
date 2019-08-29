@@ -55,12 +55,6 @@ typedef struct {
 } CmdlineParameter;
 
 typedef struct {
-    unsigned int                enable; // camera[3..0] enable, value:0/1. eg 0x1111
-    unsigned int                mask;   // camera[3..0] mask,   value:0/1. eg 0x0001
-    unsigned int                csiOut; // camera[3..0] csi outmap, value:0/1/2/3. eg. 0x3210
-} MapInfo;
-
-typedef struct {
     SensorInfo                  *sensorInfo;
     SensorProperties            *sensorProperties;
     NvMediaBool                 calibrateSensorFlag;
@@ -78,7 +72,6 @@ typedef struct {
     NvMediaBool                 positionSpecifiedFlag;
     NvMediaRect                 position;
     NvMediaBool                 useFilePrefix;
-    NvMediaBool                 useNvRawFormat;
     char                        filePrefix[MAX_STRING_SIZE];
     uint32_t                    crystalFrequency;
     uint32_t                    numFramesToSkip;
@@ -90,8 +83,6 @@ typedef struct {
     uint32_t                    numVirtualChannels;
     NvMediaBool                 useAggregationFlag;
     NvMediaBool                 useVirtualChannels;
-    MapInfo                     camMap;
-    NvMediaBool                 disablePwrCtrl;
     CmdlineParameter            config[NVMEDIA_ICP_MAX_VIRTUAL_CHANNELS];
 } TestArgs;
 
