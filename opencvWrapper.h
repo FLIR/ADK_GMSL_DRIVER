@@ -12,9 +12,13 @@ class OpencvWrapper {
         ~OpencvWrapper();
         void hello();
         void display(uint8_t *data, int width, int height);
+        void startRecording();
+        void stopRecording();
+        void recordFrame(uint8_t *data, int width, int height);
     private:
         uint8_t *imgBuffer;
         cv::Mat img;
+        bool recording;
 };
 
 #endif

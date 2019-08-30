@@ -14,6 +14,7 @@
 #include "save.h"
 #include "display.h"
 #include "opencvConnector.h"
+#include "helpers.h"
 
 static void
 _CreateOutputFileName(char *saveFilePrefix,
@@ -46,8 +47,10 @@ _SaveThreadFunc(void *data)
 {
     SaveThreadCtx *threadCtx = (SaveThreadCtx *)data;
     NvMediaImage *image = NULL;
+    uint8_t *imgData;
     NvMediaStatus status;
     uint32_t totalSavedFrames=0;
+
     char outputFileName[MAX_STRING_SIZE];
     char buf[MAX_STRING_SIZE] = {0};
     char *calSettings = NULL;
@@ -63,6 +66,31 @@ _SaveThreadFunc(void *data)
                      __func__, threadCtx->virtualGroupIndex);
             if (*threadCtx->quit)
                 goto loop_done;
+        }
+
+        if (*threadCtx->toggleRecording) {
+            threadCtx->videoEnabled = (NvMediaBool)(!threadCtx->videoEnabled);
+            if(threadCtx->videoEnabled) {
+                Opencv_startRecording();
+            } else {
+                Opencv_stopRecording();
+            }
+            *threadCtx->toggleRecording = NVMEDIA_FALSE;
+        }
+
+        if(threadCtx->videoEnabled) {
+            if(!(imgData = malloc(image->width * image->height * sizeof(uint8_t)))) {
+                LOG_ERR("%s: Out of memory", __func__);
+                goto loop_done;
+            }
+
+            status = ImageToBytes(image, imgData, threadCtx->rawBytesPerPixel);
+            if(status != NVMEDIA_STATUS_OK) {
+                LOG_ERR("%s: Could not convert image to bytes", __func__);
+                goto loop_done;
+            }
+
+            Opencv_recordFrame(imgData, image->width, image->height);
         }
 
     loop_done:
@@ -119,6 +147,7 @@ SaveInit(NvMainContext *mainCtx)
     /* Create save input Queues and set thread data */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
         saveCtx->threadCtx[i].quit = saveCtx->quit;
+        saveCtx->threadCtx[i].toggleRecording = mainCtx->toggleRecording;
         saveCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
         saveCtx->threadCtx[i].sensorInfo = testArgs->sensorInfo;

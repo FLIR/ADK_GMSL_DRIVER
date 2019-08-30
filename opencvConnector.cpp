@@ -27,6 +27,21 @@ void Opencv_display(uint8_t *data, int width, int height) {
     opencv->display(data, width, height);
 }
 
+void Opencv_startRecording() {
+    initWrapper();
+    opencv->startRecording();
+}
+
+void Opencv_stopRecording() {
+    initWrapper();
+    opencv->stopRecording();
+}
+
+void Opencv_recordFrame(uint8_t *data, int width, int height) {
+    initWrapper();
+    opencv->recordFrame(data, width, height);
+}
+
 #ifdef __cplusplus
 }
 #endif

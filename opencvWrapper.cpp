@@ -3,6 +3,7 @@
 
 OpencvWrapper::OpencvWrapper() {
     imgBuffer = nullptr;
+    recording = false;
 }
 
 OpencvWrapper::~OpencvWrapper() {
@@ -33,4 +34,20 @@ void OpencvWrapper::display(uint8_t *data, int width, int height) {
     memcpy(imgBuffer, data, width * height * sizeof(uint8_t));
     cv::imshow("Boson", img);
     cv::waitKey(10);
+}
+
+void OpencvWrapper::startRecording() {
+    recording = true;
+}
+
+void OpencvWrapper::stopRecording() {
+    recording = false;
+}
+
+void OpencvWrapper::recordFrame(uint8_t *data, int width, int height) {
+    if(!recording) {
+        return;
+    }
+
+    
 }

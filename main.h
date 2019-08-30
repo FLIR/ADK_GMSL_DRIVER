@@ -27,6 +27,7 @@ typedef struct {
     void                        *ctxs[MAX_NUM_ELEMENTS];
     TestArgs                    *testArgs;
     volatile NvMediaBool         quit;
+    volatile NvMediaBool         toggleRecording;
 } NvMainContext;
 
 #endif

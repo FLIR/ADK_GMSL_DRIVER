@@ -20,6 +20,7 @@
 
 /* Quit flag. Out of context structure for sig handling */
 static volatile NvMediaBool *quit_flag;
+static volatile NvMediaBool *recording_flag;
 
 static void
 SigHandler(int signum)
@@ -76,7 +77,7 @@ ExecuteNextCommand(NvMainContext *ctx) {
     }
 
     if (!strcasecmp(input, "r")) {
-        printf("R pressed!\n");
+        *recording_flag = NVMEDIA_TRUE;
     }
 
     return 0;
@@ -125,6 +126,7 @@ int main(int argc,
     }
 
     quit_flag = &mainCtx.quit;
+    recording_flag = &mainCtx.toggleRecording;
     SigSetup();
 
     /* Initialize context */
