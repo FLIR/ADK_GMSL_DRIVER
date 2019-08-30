@@ -1,5 +1,6 @@
 #include "display.h"
 #include "capture.h"
+#include "opencvConnector.h"
 
 
 static NvMediaStatus
@@ -156,6 +157,8 @@ _DisplayThreadFunc(void *data)
                     *threadCtx->quit = NVMEDIA_TRUE;
                     goto loop_done;
                 }
+
+                Opencv_display(imgData, image->width, image->height);
 
                 // while (NvQueuePut(threadCtx->outputQueue,
                 //                   &convertedImage,

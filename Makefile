@@ -31,9 +31,9 @@ OBJS   += ../utils/misc_utils.o
 OBJS   += ../utils/surf_utils.o
 OBJS   += ../utils/thread_utils.o
 
-LDLIBS  := -L ../utils
-# LDLIBS  += -L.
-# LDLIBS  += -lopencvConnector
+LDLIBS  := -L.
+LDLIBS  += -lopencvConnector
+LDLIBS  += -L ../utils
 LDLIBS  += -lnvmedia
 LDLIBS  += -lnvmedia_isc
 LDLIBS  += -lnvrawfile_interface
