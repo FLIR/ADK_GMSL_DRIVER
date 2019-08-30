@@ -11,25 +11,6 @@
 #include "display.h"
 #include "os_common.h"
 
-/* each 4bit 0 or 1 --> 1bit 0 or 1. eg. 0x1101 --> 0xD */
-#define CAMMAP_4BITSTO_1BIT(a) \
-               ((a & 0x01) + ((a >> 3) & 0x02) + ((a >> 6) & 0x04) + ((a >> 9) & 0x08))
-/* each 4bit 0/1/2/3 --> 2bit 0/1/2/3. eg. 0x3210 --> 0xE4 */
-#define CAMMAP_4BITSTO_2BITS(a) \
-               ((a & 0x03) + ((a >> 2) & 0x0c) + ((a >> 4) & 0x30) + ((a >> 6) & 0xc0))
-/* link i is enabled or not */
-#define MAP_LINK_ENABLED(enable, i) ((enable >> 4*i) & 0x1)
-/* link i out: 0 or 1 or 2 or 3 */
-#define MAP_LINK_CSIOUT(csiOut, i) ((csiOut >> 4*i) & 0x3)
-/* check if 4 links has any duplicated out number */
-#define MAP_CHECK_DUPLICATED_OUT(csiOut) \
-           (((MAP_LINK_CSIOUT(csiOut, 0) == MAP_LINK_CSIOUT(csiOut, 1)) || \
-             (MAP_LINK_CSIOUT(csiOut, 0) == MAP_LINK_CSIOUT(csiOut, 2)) || \
-             (MAP_LINK_CSIOUT(csiOut, 0) == MAP_LINK_CSIOUT(csiOut, 3)) || \
-             (MAP_LINK_CSIOUT(csiOut, 1) == MAP_LINK_CSIOUT(csiOut, 2)) || \
-             (MAP_LINK_CSIOUT(csiOut, 1) == MAP_LINK_CSIOUT(csiOut, 3)) || \
-             (MAP_LINK_CSIOUT(csiOut, 2) == MAP_LINK_CSIOUT(csiOut, 3))) ? 1 : 0)
-
 static NvMediaStatus
 _DetermineCaptureStatus(NvMediaBool *captureFlag,
                         uint32_t frameNumber,
@@ -832,13 +813,14 @@ CaptureProc(NvMainContext *mainCtx)
     }
 
     NvCaptureContext *captureCtx = mainCtx->ctxs[CAPTURE_ELEMENT];
-    NvDisplayContext *displayCtx = mainCtx->ctxs[DISPLAY_ELEMENT];
+    NvDisplayContext *saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
+    // NvDisplayContext *displayCtx = mainCtx->ctxs[DISPLAY_ELEMENT];
 
     /* Setting the queues */
     for (i = 0; i < captureCtx->numVirtualChannels; i++) {
         CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
         if (threadCtx)
-            threadCtx->outputQueue = displayCtx->threadCtx[i].inputQueue;
+            threadCtx->outputQueue = saveCtx->threadCtx[i].inputQueue;
     }
 
     /* Create capture threads */

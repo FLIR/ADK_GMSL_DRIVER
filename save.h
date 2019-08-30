@@ -18,7 +18,6 @@ extern "C" {
 #include "cmdline.h"
 #include "thread_utils.h"
 #include "surf_utils.h"
-#include "runtime_settings.h"
 
 #define SAVE_QUEUE_SIZE                 3      /* min no. of buffers to be in circulation at any point */
 #define SAVE_DEQUEUE_TIMEOUT            1000
@@ -28,8 +27,7 @@ typedef struct {
     NvQueue                    *inputQueue;
     NvQueue                    *outputQueue;
     volatile NvMediaBool       *quit;
-    NvMediaBool                 displayEnabled;
-    NvMediaBool                 saveEnabled;
+    NvMediaBool                 videoEnabled;
     NvMediaBool                 exitedFlag;
 
     /* save params */
@@ -39,16 +37,12 @@ typedef struct {
     uint32_t                    rawBytesPerPixel;
     uint32_t                    pixelOrder;
     char                       *saveFilePrefix;
-    NvMediaBool                 useNvRawFormat;
     uint32_t                    numFramesToSave;
     uint32_t                    virtualGroupIndex;
-    RuntimeSettings            *rtSettings;
-    uint32_t                   *numRtSettings;
     SensorProperties           *sensorProperties;
 
     /* Raw2Rgb conversion params */
     NvQueue                    *conversionQueue;
-    NvMediaSurfaceType          surfType;
     uint32_t                    width;
     uint32_t                    height;
 } SaveThreadCtx;

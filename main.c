@@ -12,7 +12,7 @@
 #include "main.h"
 #include "check_version.h"
 #include "capture.h"
-// #include "save.h"
+#include "save.h"
 // #include "composite.h"
 #include "display.h"
 // #include "grp_activate.h"
@@ -73,6 +73,10 @@ ExecuteNextCommand(NvMainContext *ctx) {
     if (!strcasecmp(input, "q") || !strcasecmp(input, "quit")) {
         *quit_flag = NVMEDIA_TRUE;
         return 0;
+    }
+
+    if (!strcasecmp(input, "r")) {
+        printf("R pressed!\n");
     }
 
     return 0;
@@ -137,10 +141,10 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize Save\n", __func__);
-//         goto done;
-//     }
+    if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Failed to Initialize Save\n", __func__);
+        goto done;
+    }
 
 //     if (CompositeInit(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: Failed to Initialize Composite\n", __func__);
@@ -173,10 +177,10 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: SaveProc Failed\n", __func__);
-//         goto done;
-//     }
+    if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: SaveProc Failed\n", __func__);
+        goto done;
+    }
 
 //     if (CompositeProc(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: CompositeProc Failed\n", __func__);
@@ -216,7 +220,7 @@ done:
 //     GrpActivationFini(&mainCtx);
     DisplayFini(&mainCtx);
 //     CompositeFini(&mainCtx);
-//     SaveFini(&mainCtx);
+    SaveFini(&mainCtx);
 //     RuntimeSettingsFini(&mainCtx);
     CaptureFini(&mainCtx);
     return 0;
