@@ -111,7 +111,7 @@ _DisplayThreadFunc(void *data)
         /* Wait for captured frames */
         while (NvQueueGet(threadCtx->inputQueue, &image, DISPLAY_DEQUEUE_TIMEOUT) !=
            NVMEDIA_STATUS_OK) {
-            LOG_DBG("%s: saveThread input queue %d is empty\n",
+            LOG_DBG("%s: displayThread input queue %d is empty\n",
                      __func__, threadCtx->virtualGroupIndex);
             if (*threadCtx->quit)
                 goto loop_done;
@@ -385,7 +385,7 @@ DisplayProc(NvMainContext *mainCtx)
     }
     displayCtx = mainCtx->ctxs[DISPLAY_ELEMENT];
 
-    /* Create thread to save images */
+    /* Create thread to display images */
     for (i = 0; i < displayCtx->numVirtualChannels; i++) {
         displayCtx->threadCtx[i].exitedFlag = NVMEDIA_FALSE;
         status = NvThreadCreate(&displayCtx->displayThread[i],

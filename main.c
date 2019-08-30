@@ -162,11 +162,11 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     /* Call Proc for each component */
-//     if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: CaptureProc Failed\n", __func__);
-//         goto done;
-//     }
+    /* Call Proc for each component */
+    if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: CaptureProc Failed\n", __func__);
+        goto done;
+    }
 
 //     if (RuntimeSettingsProc(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: RuntimeSettingsProc Failed\n", __func__);

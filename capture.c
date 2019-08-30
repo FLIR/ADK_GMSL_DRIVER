@@ -8,7 +8,7 @@
  */
 
 #include "capture.h"
-// #include "save.h"
+#include "display.h"
 #include "os_common.h"
 
 /* each 4bit 0 or 1 --> 1bit 0 or 1. eg. 0x1101 --> 0xD */
@@ -572,6 +572,7 @@ CaptureInit(NvMainContext *mainCtx)
     captureCtx->sensorInfo = testArgs->sensorInfo;
     captureCtx->inputQueueSize = testArgs->bufferPoolSize;
     captureCtx->crystalFrequency = testArgs->crystalFrequency;
+    captureCtx->useNvRawFormat = NVMEDIA_FALSE;
     captureCtx->sensorInfo = testArgs->sensorInfo;
 
     /* Parse registers file */
@@ -626,6 +627,20 @@ CaptureInit(NvMainContext *mainCtx)
             goto failed;
         }
     }
+
+    /* Create NvMediaISC object to power on cameras */
+    captureCtx->iscCtx =
+        NvMediaISCRootDeviceCreate(
+            ISC_RDEV_CFG(captureCtx->interfaceType,
+                            captureCtx->i2cDeviceNum)); /* port */
+    if (!captureCtx->iscCtx) {
+        LOG_ERR("%s: Failed to create NvMedia ISC root device\n", __func__);
+        status = NVMEDIA_STATUS_ERROR;
+        goto failed;
+    }
+
+    /* Delay for 50ms in order to let sensor power on*/
+    nvsleep(50000);
 
     /* Write pre-requsite registers over i2c */
     status = I2cProcessInitialRegisters(&captureCtx->parsedCommands,
@@ -816,15 +831,15 @@ CaptureProc(NvMainContext *mainCtx)
         return NVMEDIA_STATUS_ERROR;
     }
 
-    NvCaptureContext *captureCtx  = mainCtx->ctxs[CAPTURE_ELEMENT];
-    // NvSaveContext    *saveCtx     = mainCtx->ctxs[SAVE_ELEMENT];
+    NvCaptureContext *captureCtx = mainCtx->ctxs[CAPTURE_ELEMENT];
+    NvDisplayContext *displayCtx = mainCtx->ctxs[DISPLAY_ELEMENT];
 
     /* Setting the queues */
-    // for (i = 0; i < captureCtx->numVirtualChannels; i++) {
-    //     CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
-    //     if (threadCtx)
-    //         threadCtx->outputQueue = saveCtx->threadCtx[i].inputQueue;
-    // }
+    for (i = 0; i < captureCtx->numVirtualChannels; i++) {
+        CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
+        if (threadCtx)
+            threadCtx->outputQueue = displayCtx->threadCtx[i].inputQueue;
+    }
 
     /* Create capture threads */
     for (i = 0; i < captureCtx->numVirtualChannels; i++) {
