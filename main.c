@@ -14,7 +14,7 @@
 #include "capture.h"
 // #include "save.h"
 // #include "composite.h"
-// #include "display.h"
+#include "display.h"
 // #include "grp_activate.h"
 // #include "capture_status.h"
 
@@ -147,10 +147,10 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize Display\n", __func__);
-//         goto done;
-//     }
+    if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Failed to Initialize Display\n", __func__);
+        goto done;
+    }
 
 //     if (GrpActivationInit(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: Failed to Initialize GrpActivation\n", __func__);
@@ -183,10 +183,10 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: DisplayProc Failed\n", __func__);
-//         goto done;
-//     }
+    if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: DisplayProc Failed\n", __func__);
+        goto done;
+    }
 
 //     if (GrpActivationProc(&mainCtx) != NVMEDIA_STATUS_OK) {
 //         LOG_ERR("%s: ErHandlerProc Failed\n", __func__);
@@ -214,7 +214,7 @@ int main(int argc,
 done:
 //     CaptureStatusFini(&mainCtx);
 //     GrpActivationFini(&mainCtx);
-//     DisplayFini(&mainCtx);
+    DisplayFini(&mainCtx);
 //     CompositeFini(&mainCtx);
 //     SaveFini(&mainCtx);
 //     RuntimeSettingsFini(&mainCtx);
