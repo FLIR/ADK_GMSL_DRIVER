@@ -205,11 +205,11 @@ int main(int argc,
 //         goto done;
 //     }
 
-//     while (!mainCtx.quit) {
-//         if (!allArgs.frames.isUsed) {
-//             ExecuteNextCommand(&mainCtx);
-//         }
-//     }
+    while (!mainCtx.quit) {
+        if (!allArgs.frames.isUsed) {
+            ExecuteNextCommand(&mainCtx);
+        }
+    }
 
 done:
 //     CaptureStatusFini(&mainCtx);

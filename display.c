@@ -132,15 +132,6 @@ _DisplayThreadFunc(void *data)
             }
 
             if (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW) {
-                /* Acquire image for storing converting images */
-                // while (NvQueueGet(threadCtx->conversionQueue,
-                //                   (void *)&convertedImage,
-                //                   DISPLAY_DEQUEUE_TIMEOUT) != NVMEDIA_STATUS_OK) {
-                //     LOG_ERR("%s: conversionQueue is empty\n", __func__);
-                //     if (*threadCtx->quit)
-                //         goto loop_done;
-                // }
-
                 if(!(imgData = malloc(image->width * image->height * 
                     threadCtx->rawBytesPerPixel * sizeof(uint8_t))))
                 {
@@ -148,9 +139,6 @@ _DisplayThreadFunc(void *data)
                     goto loop_done;
                 }
                 status = _ImageToBytes(image, imgData, threadCtx->rawBytesPerPixel);
-                // status = _ConvRawToRgba(image,
-                //                         convertedImage,
-                //                         threadCtx->rawBytesPerPixel);
                 if (status != NVMEDIA_STATUS_OK) {
                     LOG_ERR("%s: imageToBytes failed for image %d in displayThread %d\n",
                             __func__, totalCapturedFrames, threadCtx->virtualGroupIndex);
@@ -160,15 +148,6 @@ _DisplayThreadFunc(void *data)
 
                 Opencv_display(imgData, image->width, image->height);
 
-                // while (NvQueuePut(threadCtx->outputQueue,
-                //                   &convertedImage,
-                //                   DISPLAY_ENQUEUE_TIMEOUT) != NVMEDIA_STATUS_OK) {
-                //     LOG_DBG("%s: savethread output queue %d is full\n",
-                //              __func__, threadCtx->virtualGroupIndex);
-                //     if (*threadCtx->quit)
-                //         goto loop_done;
-                // }
-                // convertedImage = NULL;
             } else {
                 LOG_ERR("%s: Unsupported input image type", __func__);
             }
@@ -185,7 +164,7 @@ _DisplayThreadFunc(void *data)
             image = NULL;
         }
     }
-    LOG_INFO("%s: Save thread exited\n", __func__);
+    LOG_INFO("%s: Display thread exited\n", __func__);
     threadCtx->exitedFlag = NVMEDIA_TRUE;
     return NVMEDIA_STATUS_OK;
 }
@@ -204,7 +183,7 @@ DisplayInit(NvMainContext *mainCtx)
     /* allocating display context */
     mainCtx->ctxs[DISPLAY_ELEMENT]= malloc(sizeof(NvDisplayContext));
     if (!mainCtx->ctxs[DISPLAY_ELEMENT]){
-        LOG_ERR("%s: Failed to allocate memory for save context\n", __func__);
+        LOG_ERR("%s: Failed to allocate memory for display context\n", __func__);
         return NVMEDIA_STATUS_OUT_OF_MEMORY;
     }
 
@@ -226,7 +205,7 @@ DisplayInit(NvMainContext *mainCtx)
         goto failed;
     }
 
-    /* Create save input Queues and set thread data */
+    /* Create display input Queues and set thread data */
     for (i = 0; i < displayCtx->numVirtualChannels; i++) {
         displayCtx->threadCtx[i].quit = displayCtx->quit;
         displayCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
@@ -252,7 +231,7 @@ DisplayInit(NvMainContext *mainCtx)
         if (NvQueueCreate(&displayCtx->threadCtx[i].inputQueue,
                          displayCtx->inputQueueSize,
                          sizeof(NvMediaImage *)) != NVMEDIA_STATUS_OK) {
-            LOG_ERR("%s: Failed to create save inputQueue %d\n",
+            LOG_ERR("%s: Failed to create display inputQueue %d\n",
                     __func__, i);
             status = NVMEDIA_STATUS_ERROR;
             goto failed;
@@ -284,7 +263,7 @@ DisplayInit(NvMainContext *mainCtx)
                     goto failed;
                 }
 
-                LOG_DBG("%s: Save Conversion Queue %d: %ux%u, images: %u \n",
+                LOG_DBG("%s: Dipslay Conversion Queue %d: %ux%u, images: %u \n",
                         __func__, i, displayCtx->threadCtx[i].width,
                         displayCtx->threadCtx[i].height,
                         displayCtx->inputQueueSize);
@@ -293,7 +272,7 @@ DisplayInit(NvMainContext *mainCtx)
     }
     return NVMEDIA_STATUS_OK;
 failed:
-    LOG_ERR("%s: Failed to initialize Save\n",__func__);
+    LOG_ERR("%s: Failed to initialize Dipslay\n",__func__);
     return status;
 }
 
@@ -316,7 +295,7 @@ DisplayFini(NvMainContext *mainCtx)
     for (i = 0; i < displayCtx->numVirtualChannels; i++) {
         if (displayCtx->displayThread[i]) {
             while (!displayCtx->threadCtx[i].exitedFlag) {
-                LOG_DBG("%s: Waiting for save thread %d to quit\n",
+                LOG_DBG("%s: Waiting for dipslay thread %d to quit\n",
                         __func__, i);
             }
         }
@@ -329,7 +308,7 @@ DisplayFini(NvMainContext *mainCtx)
         if (displayCtx->displayThread[i]) {
             status = NvThreadDestroy(displayCtx->displayThread[i]);
             if (status != NVMEDIA_STATUS_OK)
-                LOG_ERR("%s: Failed to destroy save thread %d\n",
+                LOG_ERR("%s: Failed to destroy dipslay thread %d\n",
                         __func__, i);
         }
     }
@@ -349,7 +328,7 @@ DisplayFini(NvMainContext *mainCtx)
 
         /*Flush and destroy the input queues*/
         if (displayCtx->threadCtx[i].inputQueue) {
-            LOG_DBG("%s: Flushing the save input queue %d\n", __func__, i);
+            LOG_DBG("%s: Flushing the dipslay input queue %d\n", __func__, i);
             while (IsSucceed(NvQueueGet(displayCtx->threadCtx[i].inputQueue, &image, 0))) {
                 if (image) {
                     if (NvQueuePut((NvQueue *)image->tag,
