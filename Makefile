@@ -20,6 +20,7 @@ OBJS   += capture.o
 OBJS   += check_version.o
 OBJS   += cmdline.o
 # OBJS   += composite.o
+OBJS   += helpers.o
 OBJS   += display.o
 # OBJS   += grp_activate.o
 # OBJS   += runtime_settings.o

@@ -10,6 +10,7 @@
 #include "capture.h"
 #include "display.h"
 #include "os_common.h"
+#include "helpers.h"
 
 static NvMediaStatus
 _DetermineCaptureStatus(NvMediaBool *captureFlag,
@@ -305,57 +306,6 @@ _SetICPSettings(CaptureThreadCtx *ctx,
     ctx->surfAllocAttrs[5].value = NVM_SURF_ATTR_ALLOC_ISOCHRONOUS;
     ctx->numSurfAllocAttrs = 6;
     return NVMEDIA_STATUS_OK;
-}
-
-static NvMediaStatus
-_CreateImageQueue(NvMediaDevice *device,
-                  NvQueue **queue,
-                  uint32_t queueSize,
-                  uint32_t width,
-                  uint32_t height,
-                  NvMediaSurfaceType surfType,
-                  NvMediaSurfAllocAttr *surfAllocAttrs,
-                  uint32_t numSurfAllocAttrs)
-{
-    uint32_t j = 0;
-    NvMediaImage *image = NULL;
-    NvMediaStatus status = NVMEDIA_STATUS_OK;
-
-    if (NvQueueCreate(queue,
-                      queueSize,
-                      sizeof(NvMediaImage *)) != NVMEDIA_STATUS_OK) {
-       LOG_ERR("%s: Failed to create image Queue \n", __func__);
-       goto failed;
-    }
-
-    for (j = 0; j < queueSize; j++) {
-        LOG_DBG("%s: NvMediaImageCreateNew\n", __func__);
-        image =  NvMediaImageCreateNew(device,           // device
-                                    surfType,           // NvMediaSurfaceType type
-                                    surfAllocAttrs,     // surf allocation attrs
-                                    numSurfAllocAttrs,  // num attrs
-                                    0);                 // flags
-        if (!image) {
-            LOG_ERR("%s: NvMediaImageCreate failed for image %d",
-                        __func__, j);
-            status = NVMEDIA_STATUS_ERROR;
-            goto failed;
-        }
-
-        image->tag = *queue;
-
-        if (IsFailed(NvQueuePut(*queue,
-                                (void *)&image,
-                                NV_TIMEOUT_INFINITE))) {
-            LOG_ERR("%s: Pushing image to image queue failed\n", __func__);
-            status = NVMEDIA_STATUS_ERROR;
-            goto failed;
-        }
-    }
-
-    return NVMEDIA_STATUS_OK;
-failed:
-    return status;
 }
 
 static uint32_t
@@ -689,7 +639,7 @@ CaptureInit(NvMainContext *mainCtx)
         captureCtx->threadCtx[i].numBuffers = captureCtx->inputQueueSize;
 
         /* Create inputQueue for storing captured Images */
-        status = _CreateImageQueue(captureCtx->device,
+        status = CreateImageQueue(captureCtx->device,
                                    &captureCtx->threadCtx[i].inputQueue,
                                    captureCtx->inputQueueSize,
                                    captureCtx->threadCtx[i].width,
