@@ -12,6 +12,7 @@
 
 #include "capture.h"
 #include "save.h"
+#include "composite.h"
 #include "opencvConnector.h"
 
 #define CONV_GET_X_OFFSET(xoffsets, red, green1, green2, blue) \
@@ -291,6 +292,32 @@ failed:
 }
 
 static uint32_t
+_GetSettingNum(RuntimeSettings *rtSettings,
+               uint32_t numRtSettings,
+               uint32_t currentFrame)
+{
+    uint32_t i = 0, totalFrames = 0;
+    RuntimeSettings *settings;
+
+    for(i = 0; i < numRtSettings; i++) {
+        settings = &rtSettings[i];
+        totalFrames += settings->numFrames;
+    }
+
+    currentFrame = currentFrame % totalFrames;
+    for(i = 0; i < numRtSettings; i++) {
+        settings = &rtSettings[i];
+        if(settings->numFrames > currentFrame) {
+            return i;
+        } else {
+            currentFrame -= settings->numFrames;
+        }
+    }
+    return -1;
+
+}
+
+static uint32_t
 _SaveThreadFunc(void *data)
 {
     SaveThreadCtx *threadCtx = (SaveThreadCtx *)data;
@@ -316,7 +343,12 @@ _SaveThreadFunc(void *data)
         }
 
         if (threadCtx->saveEnabled) {
-            if (threadCtx->sensorInfo) {
+            if (*threadCtx->numRtSettings) {
+                calSettings = threadCtx->rtSettings[_GetSettingNum(threadCtx->rtSettings,
+                                                                  *threadCtx->numRtSettings,
+                                                                  totalSavedFrames)
+                                                  ].outputFileName;
+            } else if (threadCtx->sensorInfo) {
                 memset(buf, 0 , MAX_STRING_SIZE);
                 status = threadCtx->sensorInfo->AppendOutputFilename(buf,
                                                                      threadCtx->sensorProperties);
@@ -464,6 +496,7 @@ SaveInit(NvMainContext *mainCtx)
 {
     NvSaveContext *saveCtx  = NULL;
     NvCaptureContext   *captureCtx = NULL;
+    NvRuntimeSettingsContext *runtimeCtx = NULL;
     TestArgs           *testArgs = mainCtx->testArgs;
     uint32_t i = 0;
     NvMediaStatus status = NVMEDIA_STATUS_ERROR;
@@ -480,6 +513,7 @@ SaveInit(NvMainContext *mainCtx)
     saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
     memset(saveCtx,0,sizeof(NvSaveContext));
     captureCtx = mainCtx->ctxs[CAPTURE_ELEMENT];
+    runtimeCtx = mainCtx->ctxs[RUNTIME_SETTINGS_ELEMENT];
 
     /* initialize context */
     saveCtx->quit      =  &mainCtx->quit;
@@ -502,6 +536,7 @@ SaveInit(NvMainContext *mainCtx)
         saveCtx->threadCtx[i].displayEnabled = testArgs->displayEnabled;
         saveCtx->threadCtx[i].saveEnabled = testArgs->useFilePrefix;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
+        saveCtx->threadCtx[i].useNvRawFormat = testArgs->useNvRawFormat;
         saveCtx->threadCtx[i].sensorInfo = testArgs->sensorInfo;
         saveCtx->threadCtx[i].calParams = &captureCtx->calParams;
         saveCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
@@ -522,6 +557,8 @@ SaveInit(NvMainContext *mainCtx)
                                            captureCtx->threadCtx[i].width/2 : captureCtx->threadCtx[i].width;
         saveCtx->threadCtx[i].height = (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW )?
                                            captureCtx->threadCtx[i].height/2 : captureCtx->threadCtx[i].height;
+        saveCtx->threadCtx[i].rtSettings = runtimeCtx->rtSettings;
+        saveCtx->threadCtx[i].numRtSettings = &runtimeCtx->numRtSettings;
         saveCtx->threadCtx[i].sensorProperties = testArgs->sensorProperties;
         if (NvQueueCreate(&saveCtx->threadCtx[i].inputQueue,
                          saveCtx->inputQueueSize,
@@ -654,6 +691,7 @@ NvMediaStatus
 SaveProc(NvMainContext *mainCtx)
 {
     NvSaveContext        *saveCtx = NULL;
+    NvCompositeContext   *compositeCtx = NULL;
     uint32_t i;
     NvMediaStatus status= NVMEDIA_STATUS_OK;
 
@@ -662,6 +700,14 @@ SaveProc(NvMainContext *mainCtx)
         return NVMEDIA_STATUS_ERROR;
     }
     saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
+    compositeCtx = mainCtx->ctxs[COMPOSITE_ELEMENT];
+
+    /* Setting the queues */
+    if (saveCtx->displayEnabled) {
+        for (i = 0; i < saveCtx->numVirtualChannels; i++) {
+            saveCtx->threadCtx[i].outputQueue = compositeCtx->inputQueue[i];
+        }
+    }
 
     /* Create thread to save images */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
