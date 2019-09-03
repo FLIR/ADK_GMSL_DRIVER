@@ -147,7 +147,7 @@ SaveInit(NvMainContext *mainCtx)
     /* Create save input Queues and set thread data */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
         saveCtx->threadCtx[i].quit = saveCtx->quit;
-        saveCtx->threadCtx[i].toggleRecording = mainCtx->toggleRecording;
+        saveCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
         saveCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
         saveCtx->threadCtx[i].sensorInfo = testArgs->sensorInfo;

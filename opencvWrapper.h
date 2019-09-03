@@ -5,6 +5,9 @@
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc.hpp"
+#include <opencv2/imgcodecs.hpp>
+#include "opencv2/videoio.hpp"
+#include "opencv2/opencv.hpp"
 
 class OpencvWrapper {
     public:
@@ -23,7 +26,7 @@ class OpencvWrapper {
         cv::Mat img;
         cv::VideoWriter videoRecorder;
 
-        void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height);
+        void setImgBuffer(uint8_t *data, int width, int height);
 };
 
 #endif

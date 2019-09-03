@@ -34,6 +34,8 @@ OBJS   += ../utils/thread_utils.o
 
 LDLIBS  := -L.
 LDLIBS  += -lopencvConnector
+LDLIBS	+= -L ../cv_install/lib
+LDLIBS	+= -lopencv_imgcodecs
 LDLIBS  += -L ../utils
 LDLIBS  += -lnvmedia
 LDLIBS  += -lnvmedia_isc

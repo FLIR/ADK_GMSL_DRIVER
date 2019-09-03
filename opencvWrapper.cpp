@@ -44,7 +44,7 @@ void OpencvWrapper::startRecording(int width, int height) {
     recording = true;
     videoWidth = width;
     videoHeight = height;
-    videoRecorder = cv::VideoWriter("test.mp4", CV_8UC1, 30, 
+    videoRecorder = cv::VideoWriter("test.avi", CV_8UC1, 30, 
         cv::Size(width, height), false);
 }
 
