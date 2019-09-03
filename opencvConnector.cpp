@@ -22,9 +22,9 @@ void Opencv_hello() {
     opencv->hello();
 }
 
-void Opencv_display(uint8_t *data, int width, int height) {
+void Opencv_display(uint8_t *data, int width, int height, int bytesPerPixel) {
     initWrapper();
-    opencv->display(data, width, height);
+    opencv->display(data, width, height, bytesPerPixel);
 }
 
 void Opencv_startRecording(int fps, char *filename) {

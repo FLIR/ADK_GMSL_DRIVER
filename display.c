@@ -57,7 +57,8 @@ _DisplayThreadFunc(void *data)
                     goto loop_done;
                 }
 
-                Opencv_display(imgData, image->width, image->height);
+                Opencv_display(imgData, image->width, image->height, 
+                    threadCtx->rawBytesPerPixel);
 
             } else {
                 LOG_ERR("%s: Unsupported input image type", __func__);

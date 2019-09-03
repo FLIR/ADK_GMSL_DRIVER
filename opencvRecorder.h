@@ -11,7 +11,7 @@
 
 class OpencvRecorder {
     public:
-        int width, height;
+        int width, height, bytesPerPixel;
         bool recording;
 
         OpencvRecorder();

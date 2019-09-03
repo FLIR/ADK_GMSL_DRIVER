@@ -10,7 +10,7 @@
 # Max9286 Address: 0x90  # in 8-bit format (0x48 in 7-bit) DESERIALIZAER
 # Capture Config Parameters
 ; Interface: csi-ab
-; Input Format: raw8    # Boson is 14 bits (encapsulated in 16bits) 
+; Input Format: raw16    # Boson is 14 bits (encapsulated in 16bits) 
 ; Resolution: 640x513    # If Telemetry line is OFF then 640x512.  
 ; CSI Lanes: 4           # If CSI Lanes = 1 wont work
 ; I2C Device: 0          # 1 csi-ef,2 csi-cd,7 csi-ab
@@ -59,14 +59,13 @@
 52 041B 39
 52 041E 39
 
-# RAW8 software override for all pipes since connected GMSL1 is under parallel mode
-52 040B 42
+# RAW16 software override for all pipes since connected GMSL1 is under parallel mode
+52 040B 82
 52 040C 00
 52 040D 00
-52 040E 2A
-52 090D 2A
-52 090E 2A
-
+52 040E 2E
+52 090D 2E
+52 090E 2E
 
 52 090B 07
 52 092D 15 # CSI2 controller 1
