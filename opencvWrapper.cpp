@@ -38,8 +38,9 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height) {
     memcpy(imgBuffer, data, width * height * sizeof(uint8_t));
 }
 
-void OpencvWrapper::startRecording(int width, int height) {
-    recorder = OpencvRecorder(img, 30, "test.avi");
+void OpencvWrapper::startRecording(int fps, std::string filename) {
+    // assume that a frame as been captured (img has been initialized) before calling this
+    recorder = OpencvRecorder(img, fps, filename);
 }
 
 void OpencvWrapper::stopRecording() {

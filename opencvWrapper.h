@@ -15,7 +15,7 @@ class OpencvWrapper {
         ~OpencvWrapper();
         void hello();
         void display(uint8_t *data, int width, int height);
-        void startRecording(int width, int height);
+        void startRecording(int fps, std::string filename);
         void stopRecording();
         void recordFrame(uint8_t *data);
     private:

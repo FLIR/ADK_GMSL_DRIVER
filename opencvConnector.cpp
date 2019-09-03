@@ -27,9 +27,9 @@ void Opencv_display(uint8_t *data, int width, int height) {
     opencv->display(data, width, height);
 }
 
-void Opencv_startRecording(int width, int height) {
+void Opencv_startRecording(int fps, char *filename) {
     initWrapper();
-    opencv->startRecording(width, height);
+    opencv->startRecording(fps, filename);
 }
 
 void Opencv_stopRecording() {

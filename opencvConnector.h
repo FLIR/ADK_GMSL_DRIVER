@@ -9,7 +9,7 @@ extern "C" {
 
 void Opencv_hello();
 void Opencv_display(uint8_t *data, int width, int height);
-void Opencv_startRecording(int width, int height);
+void Opencv_startRecording(int fps, char *filename);
 void Opencv_stopRecording();
 void Opencv_recordFrame(uint8_t *data);
 
