@@ -1,9 +1,7 @@
 #include "opencvWrapper.h"
 
-
 OpencvWrapper::OpencvWrapper() {
     imgBuffer = nullptr;
-    recording = false;
 }
 
 OpencvWrapper::~OpencvWrapper() {
@@ -41,23 +39,18 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height) {
 }
 
 void OpencvWrapper::startRecording(int width, int height) {
-    recording = true;
-    videoWidth = width;
-    videoHeight = height;
-    videoRecorder = cv::VideoWriter("test.avi", CV_8UC1, 30, 
-        cv::Size(width, height), false);
+    recorder = OpencvRecorder(img, 30, "test.avi");
 }
 
 void OpencvWrapper::stopRecording() {
-    recording = false;
-    videoRecorder.release();
+    recorder.stop();
 }
 
 void OpencvWrapper::recordFrame(uint8_t *data) {
-    if(!recording) {
+    if(!recorder.recording) {
         return;
     }
-    setImgBuffer(data, videoWidth, videoHeight);
+    setImgBuffer(data, recorder.width, recorder.height);
 
-    videoRecorder.write(img);
+    recorder.captureFrame();
 }

@@ -3,11 +3,11 @@
 
 #include <stdint.h>
 #include <iostream>
+
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgproc.hpp"
-#include <opencv2/imgcodecs.hpp>
-#include "opencv2/videoio.hpp"
-#include "opencv2/opencv.hpp"
+
+#include "opencvRecorder.h"
 
 class OpencvWrapper {
     public:
@@ -20,11 +20,8 @@ class OpencvWrapper {
         void recordFrame(uint8_t *data);
     private:
         uint8_t *imgBuffer;
-        bool recording;
-        int videoWidth;
-        int videoHeight;
         cv::Mat img;
-        cv::VideoWriter videoRecorder;
+        OpencvRecorder recorder;
 
         void setImgBuffer(uint8_t *data, int width, int height);
 };

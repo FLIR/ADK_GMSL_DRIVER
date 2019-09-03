@@ -15,6 +15,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_library(opencvConnector SHARED
     opencvConnector.cpp
     opencvWrapper.cpp
+    opencvRecorder.cpp
 )
 
 target_link_libraries(opencvConnector ${OpenCV_LIBS})
