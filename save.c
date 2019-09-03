@@ -49,7 +49,6 @@ _SaveThreadFunc(void *data)
     NvMediaImage *image = NULL;
     uint8_t *imgData;
     NvMediaStatus status;
-    uint32_t totalSavedFrames=0;
 
     char outputFileName[MAX_STRING_SIZE];
     char buf[MAX_STRING_SIZE] = {0};
@@ -71,7 +70,7 @@ _SaveThreadFunc(void *data)
         if (*threadCtx->toggleRecording) {
             threadCtx->videoEnabled = (NvMediaBool)(!threadCtx->videoEnabled);
             if(threadCtx->videoEnabled) {
-                Opencv_startRecording(30, "test.avi");
+                Opencv_startRecording(*threadCtx->fps, "test.avi");
             } else {
                 Opencv_stopRecording();
             }

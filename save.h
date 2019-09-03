@@ -41,6 +41,7 @@ typedef struct {
     uint32_t                    numFramesToSave;
     uint32_t                    virtualGroupIndex;
     SensorProperties           *sensorProperties;
+    volatile uint32_t          *fps;
 
     /* Raw2Rgb conversion params */
     NvQueue                    *conversionQueue;

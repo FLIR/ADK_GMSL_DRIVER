@@ -8,9 +8,9 @@
  */
 
 #include "capture.h"
-#include "display.h"
 #include "os_common.h"
 #include "helpers.h"
+#include "save.h"
 
 static NvMediaStatus
 _DetermineCaptureStatus(NvMediaBool *captureFlag,
@@ -317,7 +317,7 @@ _CaptureThreadFunc(void *data)
     NvMediaImage *capturedImage = NULL;
     NvMediaImage *feedImage = NULL;
     NvMediaStatus status;
-    uint64_t tbegin = 0, tend = 0, fps;
+    uint64_t tbegin = 0, tend = 0;
     NvMediaICP *icpInst = NULL;
     uint32_t retry = 0;
 
@@ -403,12 +403,12 @@ _CaptureThreadFunc(void *data)
         GetTimeMicroSec(&tend);
         uint64_t td = tend - tbegin;
         if (td > 3000000) {
-            fps = (int)(totalCapturedFrames-lastCapturedFrame)*(1000000.0/td);
+            threadCtx->fps = (int)(totalCapturedFrames-lastCapturedFrame)*(1000000.0/td);
 
             tbegin = tend;
             lastCapturedFrame = totalCapturedFrames;
             LOG_INFO("%s: VC:%d FPS=%d delta=%lld", __func__,
-                     threadCtx->virtualGroupIndex, fps, td);
+                     threadCtx->virtualGroupIndex, threadCtx->fps, td);
         }
 
         /* push the captured image onto output queue */
@@ -763,14 +763,18 @@ CaptureProc(NvMainContext *mainCtx)
     }
 
     NvCaptureContext *captureCtx = mainCtx->ctxs[CAPTURE_ELEMENT];
-    NvDisplayContext *saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
-    // NvDisplayContext *displayCtx = mainCtx->ctxs[DISPLAY_ELEMENT];
+    NvSaveContext *saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
 
     /* Setting the queues */
     for (i = 0; i < captureCtx->numVirtualChannels; i++) {
         CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
-        if (threadCtx)
+        if (threadCtx) {
             threadCtx->outputQueue = saveCtx->threadCtx[i].inputQueue;
+            saveCtx->threadCtx[i].fps = &threadCtx->fps;
+
+            // set initial fps to reasonable value
+            threadCtx->fps = 30;
+        }
     }
 
     /* Create capture threads */

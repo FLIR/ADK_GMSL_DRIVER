@@ -56,6 +56,8 @@ typedef struct {
     NvMediaSurfAllocAttr        surfAllocAttrs[8];
     uint32_t                    numSurfAllocAttrs;
 
+    uint32_t                    fps;
+
 } CaptureThreadCtx;
 
 typedef struct {
