@@ -71,7 +71,7 @@ _SaveThreadFunc(void *data)
         if (*threadCtx->toggleRecording) {
             threadCtx->videoEnabled = (NvMediaBool)(!threadCtx->videoEnabled);
             if(threadCtx->videoEnabled) {
-                Opencv_startRecording();
+                Opencv_startRecording(image->width, image->height);
             } else {
                 Opencv_stopRecording();
             }
@@ -90,7 +90,7 @@ _SaveThreadFunc(void *data)
                 goto loop_done;
             }
 
-            Opencv_recordFrame(imgData, image->width, image->height);
+            Opencv_recordFrame(imgData);
         }
 
     loop_done:

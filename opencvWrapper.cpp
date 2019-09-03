@@ -27,27 +27,37 @@ void OpencvWrapper::hello() {
 }
 
 void OpencvWrapper::display(uint8_t *data, int width, int height) {
+    setImgBuffer(data, width, height);
+    cv::imshow("Boson", img);
+    cv::waitKey(10);
+}
+
+void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height) {
     if(!imgBuffer) {
         imgBuffer = new uint8_t[width * height];
         img = cv::Mat(height, width, CV_8UC1, reinterpret_cast<void *>(imgBuffer));
     }
     memcpy(imgBuffer, data, width * height * sizeof(uint8_t));
-    cv::imshow("Boson", img);
-    cv::waitKey(10);
 }
 
-void OpencvWrapper::startRecording() {
+void OpencvWrapper::startRecording(int width, int height) {
     recording = true;
+    videoWidth = width;
+    videoHeight = height;
+    videoRecorder = cv::VideoWriter("test.mp4", CV_8UC1, 30, 
+        cv::Size(width, height), false);
 }
 
 void OpencvWrapper::stopRecording() {
     recording = false;
+    videoRecorder.release();
 }
 
-void OpencvWrapper::recordFrame(uint8_t *data, int width, int height) {
+void OpencvWrapper::recordFrame(uint8_t *data) {
     if(!recording) {
         return;
     }
+    setImgBuffer(data, videoWidth, videoHeight);
 
-    
+    videoRecorder.write(img);
 }
