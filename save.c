@@ -78,7 +78,9 @@ _SaveThreadFunc(void *data)
         }
 
         if(threadCtx->videoEnabled) {
-            if(!(imgData = malloc(image->width * image->height * sizeof(uint8_t)))) {
+            if(!(imgData = malloc(image->width * image->height * 
+                threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
+            {
                 LOG_ERR("%s: Out of memory", __func__);
                 goto loop_done;
             }

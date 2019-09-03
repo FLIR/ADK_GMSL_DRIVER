@@ -57,7 +57,12 @@ void OpencvWrapper::recordFrame(uint8_t *data) {
     if(!recorder.recording) {
         return;
     }
-    setImgBuffer(data, recorder.width, recorder.height, recorder.bytesPerPixel);
+
+    int bytesPerPixel = 1;
+    if(img.type() == CV_16UC1) {
+        bytesPerPixel = 2;
+    }
+    setImgBuffer(data, recorder.width, recorder.height, bytesPerPixel);
 
     recorder.captureFrame();
 }
