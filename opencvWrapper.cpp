@@ -40,7 +40,8 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytes
         img = cv::Mat(height, width, pixelType, 
             reinterpret_cast<void *>(imgBuffer));
     }
-    memcpy(imgBuffer, data, width * height * sizeof(uint8_t));
+    memcpy(imgBuffer, data, width * height * bytesPerPixel * sizeof(uint8_t));
+    agc();
 }
 
 void OpencvWrapper::startRecording(int fps, std::string filename) {
@@ -59,4 +60,13 @@ void OpencvWrapper::recordFrame(uint8_t *data) {
     setImgBuffer(data, recorder.width, recorder.height, recorder.bytesPerPixel);
 
     recorder.captureFrame();
+}
+
+void OpencvWrapper::agc() {
+    int bytesPerPixel = 1;
+    if(img.type() == CV_16UC1) {
+        bytesPerPixel = 2;
+    }
+
+    cv::normalize(img, img, 0, 1 << (8 * bytesPerPixel) - 1, cv::NORM_MINMAX);
 }

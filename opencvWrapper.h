@@ -24,6 +24,7 @@ class OpencvWrapper {
         OpencvRecorder recorder;
 
         void setImgBuffer(uint8_t *data, int width, int height, int bytesPerPixel);
+        void agc();
 };
 
 #endif
