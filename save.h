@@ -32,7 +32,6 @@ typedef struct {
     NvMediaBool                 exitedFlag;
 
     /* save params */
-    CalibrationParameters      *calParams;
     uint32_t                    rawBytesPerPixel;
     char                       *saveFilePrefix;
     uint32_t                    numFramesToSave;

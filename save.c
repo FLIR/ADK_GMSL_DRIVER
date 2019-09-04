@@ -137,7 +137,6 @@ SaveInit(NvMainContext *mainCtx)
         saveCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
         saveCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
-        saveCtx->threadCtx[i].calParams = &captureCtx->calParams;
         saveCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
         saveCtx->threadCtx[i].numFramesToSave = (testArgs->frames.isUsed)?
                                                  testArgs->frames.uIntValue : 0;

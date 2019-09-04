@@ -69,7 +69,6 @@ typedef struct {
     NvMediaDevice              *device;
     NvMediaISCRootDevice       *iscCtx;
     CaptureConfigParams         captureParams;
-    SensorInfo                 *sensorInfo;
 
     /* General Variables */
     volatile NvMediaBool       *quit;
@@ -80,10 +79,8 @@ typedef struct {
     uint32_t                    inputQueueSize;
     I2cCommands                 parsedCommands;
     I2cCommands                 settingsCommands;
-    CalibrationParameters       calParams;
     NvMediaICPInterfaceType     interfaceType;
     NvMediaICPCsiPhyMode        phyMode;
-    uint32_t                    crystalFrequency;
     NvMediaBool                 useNvRawFormat;
 } NvCaptureContext;
 

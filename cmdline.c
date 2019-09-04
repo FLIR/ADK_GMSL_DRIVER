@@ -77,17 +77,13 @@ ParseArgs(int argc,
     NvMediaBool foundArg = NVMEDIA_FALSE;
     NvMediaStatus status;
     NvMediaBool bHelpArg = NVMEDIA_FALSE;
-    NvMediaBool bSensorArg = NVMEDIA_FALSE;
 
     // Default parameters
     allArgs->numSensors = 1;
     allArgs->numLinks = 0;
     allArgs->numVirtualChannels = 1;
-    allArgs->crystalFrequency = 24;
     allArgs->bufferPoolSize = MIN_BUFFER_POOL_SIZE;
     allArgs->useVirtualChannels = NVMEDIA_TRUE;
-
-    allArgs->windowId = 1;
 
     if (argc < 2) {
         PrintUsage();
@@ -121,8 +117,6 @@ ParseArgs(int argc,
 
         if (bHelpArg) {
             PrintUsage();
-            if (bSensorArg)
-                allArgs->sensorInfo->PrintSensorCaliUsage();
             return NVMEDIA_STATUS_ERROR;
         }
     }
@@ -186,19 +180,6 @@ ParseArgs(int argc,
                     }
                 }
                 allArgs->displayEnabled = NVMEDIA_TRUE;
-            } else if (!strcasecmp(argv[i], "-z")) {
-                if (bDataAvailable) {
-                    char *arg = argv[++i];
-                    allArgs->depth = atoi(arg);
-                } else {
-                    LOG_ERR("-z must be followed by depth value\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
-                if (allArgs->depth > 255) {
-                    LOG_WARN("Bad depth value: %d. Using default value: 1\n",
-                             allArgs->depth);
-                    allArgs->depth = 1;
-                }
             } else if (!strcasecmp(argv[i], "-p")) {
                 if (bDataAvailable) {
                     if ((sscanf(argv[++i], "%u:%u:%u:%u", &x, &y, &w, &h)
@@ -258,25 +239,6 @@ ParseArgs(int argc,
                     LOG_ERR("--miniburst must be followed by number of frames to capture after a wait period\n");
                     return NVMEDIA_STATUS_ERROR;
                 }
-            } else if (!strcasecmp(argv[i], "--crystalF")) {
-                if (bDataAvailable) {
-                    char *arg = argv[++i];
-                    allArgs->crystalFrequency = atoi(arg);
-                } else {
-                    LOG_ERR("--crystalF must be followed by crystal frequency in MHz\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
-            } else if (!strcasecmp(argv[i], "--aggregate")) {
-                allArgs->useAggregationFlag = NVMEDIA_TRUE;
-                if (bDataAvailable) {
-                    if ((sscanf(argv[++i], "%u", &allArgs->numSensors) != 1)) {
-                        LOG_ERR("Bad siblings number: %s\n", argv[i]);
-                        return NVMEDIA_STATUS_ERROR;
-                    }
-                } else {
-                    LOG_ERR("--aggregate must be followed by number of images to aggregate\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
             } else if (!strcasecmp(argv[i], "--vc_enable")) {
                 allArgs->useVirtualChannels= NVMEDIA_TRUE;
             } else if (!strcasecmp(argv[i], "--settings")) {
@@ -289,37 +251,12 @@ ParseArgs(int argc,
                 }
             } else {
                 foundArg = NVMEDIA_FALSE;
-                if (allArgs->sensorInfo) {
-                    for (j = 0; j < allArgs->sensorInfo->numSupportedArgs; j++) {
-                        if (!strcasecmp(argv[i], allArgs->sensorInfo->supportedArgs[j])) {
-                            foundArg = NVMEDIA_TRUE;
-                            break;
-                        }
-                    }
-                }
                 if (!foundArg) {
                     LOG_ERR("Unsupported option encountered: %s\n", argv[i]);
                     return NVMEDIA_STATUS_ERROR;
                 }
-                allArgs->calibrateSensorFlag = NVMEDIA_TRUE;
                 if (bDataAvailable)
                     i++;
-            }
-        }
-
-        if (allArgs->sensorInfo) {
-            // Process sensor properties
-            allArgs->sensorProperties = calloc(1, allArgs->sensorInfo->sizeOfSensorProperties);
-            if(!allArgs->sensorProperties) {
-                LOG_ERR("%s: Failed to create sensor properties.\n", __func__);
-                return NVMEDIA_STATUS_OUT_OF_MEMORY;
-            }
-
-            // Process calibration commands
-            status = allArgs->sensorInfo->ProcessCmdline(argc, argv, allArgs->sensorProperties);
-            if (status != NVMEDIA_STATUS_OK) {
-                LOG_ERR("Failed to process calibration parameters\n");
-                return NVMEDIA_STATUS_ERROR;
             }
         }
     }

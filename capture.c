@@ -520,11 +520,8 @@ CaptureInit(NvMainContext *mainCtx)
     captureCtx->testArgs  = testArgs;
     captureCtx->numSensors = testArgs->numSensors;
     captureCtx->numVirtualChannels = testArgs->numVirtualChannels;
-    captureCtx->sensorInfo = testArgs->sensorInfo;
     captureCtx->inputQueueSize = testArgs->bufferPoolSize;
-    captureCtx->crystalFrequency = testArgs->crystalFrequency;
     captureCtx->useNvRawFormat = NVMEDIA_FALSE;
-    captureCtx->sensorInfo = testArgs->sensorInfo;
 
     /* Parse registers file */
     if (testArgs->wrregs.isUsed) {
@@ -537,9 +534,6 @@ CaptureInit(NvMainContext *mainCtx)
         }
     }
     captureCtx->i2cDeviceNum = captureCtx->captureParams.i2cDevice.uIntValue;
-    captureCtx->calParams.i2cDevice = captureCtx->i2cDeviceNum;
-    captureCtx->calParams.sensorAddress = captureCtx->captureParams.sensorAddress.uIntValue;
-    captureCtx->calParams.crystalFrequency = captureCtx->crystalFrequency;
 
     /* Create NvMedia Device */
     captureCtx->device = NvMediaDeviceCreate();
@@ -550,7 +544,6 @@ CaptureInit(NvMainContext *mainCtx)
     }
 
     /* Set NvMediaICPSettingsEx */
-
     status = _SetInterfaceType(&captureCtx->captureParams,
                                &captureCtx->interfaceType,
                                &captureCtx->phyMode);
@@ -619,26 +612,6 @@ CaptureInit(NvMainContext *mainCtx)
     if (status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to write to registers over I2C\n", __func__);
         goto failed;
-    }
-
-    /* Calibrate sensor if needed */
-    if (testArgs->calibrateSensorFlag && captureCtx->sensorInfo) {
-        /* Populate sensor properties */
-        status = captureCtx->sensorInfo->CalibrateSensor(&captureCtx->settingsCommands,
-                                                         &captureCtx->calParams,
-                                                         testArgs->sensorProperties);
-        if (status != NVMEDIA_STATUS_OK) {
-            LOG_ERR("%s: Failed to CalibrateSensor, check calibration values \n", __func__);
-            goto failed;
-        }
-        /* Apply calibration settings */
-        status = I2cProcessCommands(&captureCtx->settingsCommands,
-                                    I2C_WRITE,
-                                    captureCtx->calParams.i2cDevice);
-        if (status != NVMEDIA_STATUS_OK) {
-            LOG_ERR("%s: Failed to process register settings\n", __func__);
-            goto failed;
-        }
     }
 
     /* Create Input Queues and set data for capture threads */
@@ -735,10 +708,6 @@ CaptureFini(NvMainContext *mainCtx)
             NvQueueDestroy(captureCtx->threadCtx[i].inputQueue);
         }
     }
-
-    /* Destroy sensor properties */
-    if(captureCtx->testArgs->sensorProperties)
-        free(captureCtx->testArgs->sensorProperties);
 
     /* Read Sensor Registers */
     if (captureCtx->testArgs->rdregs.isUsed) {

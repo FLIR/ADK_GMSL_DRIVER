@@ -55,10 +55,6 @@ typedef struct {
 } CmdlineParameter;
 
 typedef struct {
-    SensorInfo                  *sensorInfo;
-    SensorProperties            *sensorProperties;
-    NvMediaBool                 calibrateSensorFlag;
-
     uint32_t                    logLevel;
     CmdlineParameter            wrregs;
     CmdlineParameter            rdregs;
@@ -67,13 +63,10 @@ typedef struct {
     NvMediaBool                 displayEnabled;
     NvMediaBool                 displayIdUsed;
     uint32_t                    displayId;
-    uint32_t                    windowId;
-    uint32_t                    depth;
     NvMediaBool                 positionSpecifiedFlag;
     NvMediaRect                 position;
     NvMediaBool                 useFilePrefix;
     char                        filePrefix[MAX_STRING_SIZE];
-    uint32_t                    crystalFrequency;
     uint32_t                    numFramesToSkip;
     uint32_t                    numFramesToWait;
     uint32_t                    numMiniburstFrames;
@@ -81,7 +74,6 @@ typedef struct {
     uint32_t                    numSensors;
     uint32_t                    numLinks;
     uint32_t                    numVirtualChannels;
-    NvMediaBool                 useAggregationFlag;
     NvMediaBool                 useVirtualChannels;
     CmdlineParameter            config[NVMEDIA_ICP_MAX_VIRTUAL_CHANNELS];
 } TestArgs;
