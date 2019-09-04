@@ -18,13 +18,8 @@ typedef struct {
     NvMediaBool                 exitedFlag;
 
     /* display params */
-    SensorInfo                 *sensorInfo;
-    I2cCommands                settingsCommands;
-    CalibrationParameters      *calParams;
     uint32_t                    rawBytesPerPixel;
     uint32_t                    virtualGroupIndex;
-    uint32_t                   *numRtSettings;
-    SensorProperties           *sensorProperties;
 
     /* Raw2Rgb conversion params */
     NvQueue                    *conversionQueue;
@@ -36,7 +31,7 @@ typedef struct {
 typedef struct {
     /* 2D processing */
     NvThread                   *displayThread[NVMEDIA_ICP_MAX_VIRTUAL_GROUPS];
-    DisplayThreadCtx               threadCtx[NVMEDIA_ICP_MAX_VIRTUAL_GROUPS];
+    DisplayThreadCtx            threadCtx[NVMEDIA_ICP_MAX_VIRTUAL_GROUPS];
     NvMediaDevice              *device;
 
     /* General processing params */

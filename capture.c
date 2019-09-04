@@ -786,7 +786,7 @@ CaptureProc(NvMainContext *mainCtx)
     NvSaveContext *saveCtx = mainCtx->ctxs[SAVE_ELEMENT];
 
     /* Setting the queues */
-    for (i = 0; i < captureCtx->numVirtualChannels; i++) {
+    for (i = 0; i < captureCtx->numVirtualChannels; ++i) {
         CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
         if (threadCtx) {
             threadCtx->outputQueue = saveCtx->threadCtx[i].inputQueue;
@@ -794,13 +794,8 @@ CaptureProc(NvMainContext *mainCtx)
 
             // set initial fps to reasonable value
             threadCtx->fps = 30;
-        }
-    }
 
-    /* Create capture threads */
-    for (i = 0; i < captureCtx->numVirtualChannels; i++) {
-        CaptureThreadCtx *threadCtx = &captureCtx->threadCtx[i];
-        if (threadCtx) {
+            /* Create capture threads */
             threadCtx->exitedFlag = NVMEDIA_FALSE;
             status = NvThreadCreate(&captureCtx->captureThread[i],
                                     &_CaptureThreadFunc,
@@ -810,10 +805,10 @@ CaptureProc(NvMainContext *mainCtx)
                 LOG_ERR("%s: Failed to create captureThread %d\n",
                         __func__, i);
                 threadCtx->exitedFlag = NVMEDIA_TRUE;
-                goto failed;
+                return status;
             }
         }
     }
-failed:
-    return status;
+
+    return NVMEDIA_STATUS_OK;
 }

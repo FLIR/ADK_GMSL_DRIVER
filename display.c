@@ -106,8 +106,6 @@ DisplayInit(NvMainContext *mainCtx)
         displayCtx->threadCtx[i].quit = displayCtx->quit;
         displayCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
         displayCtx->threadCtx[i].displayEnabled = testArgs->displayEnabled;
-        displayCtx->threadCtx[i].sensorInfo = testArgs->sensorInfo;
-        displayCtx->threadCtx[i].calParams = &captureCtx->calParams;
         displayCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
         displayCtx->threadCtx[i].surfType = captureCtx->threadCtx[i].surfType;
         displayCtx->threadCtx[i].rawBytesPerPixel = captureCtx->threadCtx[i].rawBytesPerPixel;
@@ -123,7 +121,6 @@ DisplayInit(NvMainContext *mainCtx)
                                            captureCtx->threadCtx[i].width/2 : captureCtx->threadCtx[i].width;
         displayCtx->threadCtx[i].height = (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW )?
                                            captureCtx->threadCtx[i].height/2 : captureCtx->threadCtx[i].height;
-        displayCtx->threadCtx[i].sensorProperties = testArgs->sensorProperties;
         if (NvQueueCreate(&displayCtx->threadCtx[i].inputQueue,
                          displayCtx->inputQueueSize,
                          sizeof(NvMediaImage *)) != NVMEDIA_STATUS_OK) {

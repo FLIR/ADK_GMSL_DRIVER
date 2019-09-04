@@ -137,12 +137,10 @@ SaveInit(NvMainContext *mainCtx)
         saveCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
         saveCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
-        saveCtx->threadCtx[i].sensorInfo = testArgs->sensorInfo;
         saveCtx->threadCtx[i].calParams = &captureCtx->calParams;
         saveCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
         saveCtx->threadCtx[i].numFramesToSave = (testArgs->frames.isUsed)?
                                                  testArgs->frames.uIntValue : 0;
-        saveCtx->threadCtx[i].pixelOrder = captureCtx->threadCtx[i].pixelOrder;
         saveCtx->threadCtx[i].rawBytesPerPixel = captureCtx->threadCtx[i].rawBytesPerPixel;
         NVM_SURF_FMT_DEFINE_ATTR(attr);
         status = NvMediaSurfaceFormatGetAttrs(captureCtx->threadCtx[i].surfType,
@@ -156,7 +154,6 @@ SaveInit(NvMainContext *mainCtx)
                                            captureCtx->threadCtx[i].width/2 : captureCtx->threadCtx[i].width;
         saveCtx->threadCtx[i].height = (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW )?
                                            captureCtx->threadCtx[i].height/2 : captureCtx->threadCtx[i].height;
-        saveCtx->threadCtx[i].sensorProperties = testArgs->sensorProperties;
         if (NvQueueCreate(&saveCtx->threadCtx[i].inputQueue,
                          saveCtx->inputQueueSize,
                          sizeof(NvMediaImage *)) != NVMEDIA_STATUS_OK) {

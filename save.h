@@ -32,15 +32,11 @@ typedef struct {
     NvMediaBool                 exitedFlag;
 
     /* save params */
-    SensorInfo                 *sensorInfo;
-    I2cCommands                settingsCommands;
     CalibrationParameters      *calParams;
     uint32_t                    rawBytesPerPixel;
-    uint32_t                    pixelOrder;
     char                       *saveFilePrefix;
     uint32_t                    numFramesToSave;
     uint32_t                    virtualGroupIndex;
-    SensorProperties           *sensorProperties;
     volatile uint32_t          *fps;
 
     /* Raw2Rgb conversion params */
