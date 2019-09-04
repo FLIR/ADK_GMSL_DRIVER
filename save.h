@@ -39,7 +39,6 @@ typedef struct {
     volatile uint32_t          *fps;
 
     /* Raw2Rgb conversion params */
-    NvQueue                    *conversionQueue;
     uint32_t                    width;
     uint32_t                    height;
 } SaveThreadCtx;

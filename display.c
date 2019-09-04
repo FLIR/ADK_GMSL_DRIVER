@@ -129,39 +129,6 @@ DisplayInit(NvMainContext *mainCtx)
             status = NVMEDIA_STATUS_ERROR;
             goto failed;
         }
-        if (testArgs->displayEnabled) {
-            if (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW ) {
-                /* For RAW images, create conversion queue for converting RAW to RGB images */
-
-                surfAllocAttrs[0].type = NVM_SURF_ATTR_WIDTH;
-                surfAllocAttrs[0].value = displayCtx->threadCtx[i].width;
-                surfAllocAttrs[1].type = NVM_SURF_ATTR_HEIGHT;
-                surfAllocAttrs[1].value = displayCtx->threadCtx[i].height;
-                surfAllocAttrs[2].type = NVM_SURF_ATTR_CPU_ACCESS;
-                surfAllocAttrs[2].value = NVM_SURF_ATTR_CPU_ACCESS_UNCACHED;
-                numSurfAllocAttrs = 3;
-
-                NVM_SURF_FMT_DEFINE_ATTR(surfFormatAttrs);
-                NVM_SURF_FMT_SET_ATTR_RGBA(surfFormatAttrs,RGBA,UINT,8,PL);
-                status = CreateImageQueue(displayCtx->device,
-                                           &displayCtx->threadCtx[i].conversionQueue,
-                                           displayCtx->inputQueueSize,
-                                           displayCtx->threadCtx[i].width,
-                                           displayCtx->threadCtx[i].height,
-                                           NvMediaSurfaceFormatGetType(surfFormatAttrs, NVM_SURF_FMT_ATTR_MAX),
-                                           surfAllocAttrs,
-                                           numSurfAllocAttrs);
-                if (status != NVMEDIA_STATUS_OK) {
-                    LOG_ERR("%s: conversionQueue creation failed\n", __func__);
-                    goto failed;
-                }
-
-                LOG_DBG("%s: Dipslay Conversion Queue %d: %ux%u, images: %u \n",
-                        __func__, i, displayCtx->threadCtx[i].width,
-                        displayCtx->threadCtx[i].height,
-                        displayCtx->inputQueueSize);
-            }
-        }
     }
     return NVMEDIA_STATUS_OK;
 failed:
@@ -207,18 +174,6 @@ DisplayFini(NvMainContext *mainCtx)
     }
 
     for (i = 0; i < displayCtx->numVirtualChannels; i++) {
-        /*For RAW Images, destroy the conversion queue */
-        if (displayCtx->threadCtx[i].conversionQueue) {
-            while (IsSucceed(NvQueueGet(displayCtx->threadCtx[i].conversionQueue, &image, 0))) {
-                if (image) {
-                    NvMediaImageDestroy(image);
-                    image = NULL;
-                }
-            }
-            LOG_DBG("%s: Destroying conversion queue \n",__func__);
-            NvQueueDestroy(displayCtx->threadCtx[i].conversionQueue);
-        }
-
         /*Flush and destroy the input queues*/
         if (displayCtx->threadCtx[i].inputQueue) {
             LOG_DBG("%s: Flushing the dipslay input queue %d\n", __func__, i);

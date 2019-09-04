@@ -22,7 +22,6 @@ typedef struct {
     uint32_t                    virtualGroupIndex;
 
     /* Raw2Rgb conversion params */
-    NvQueue                    *conversionQueue;
     NvMediaSurfaceType          surfType;
     uint32_t                    width;
     uint32_t                    height;

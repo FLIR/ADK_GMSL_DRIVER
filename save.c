@@ -135,7 +135,7 @@ SaveInit(NvMainContext *mainCtx)
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
         saveCtx->threadCtx[i].quit = saveCtx->quit;
         saveCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
-        saveCtx->threadCtx[i].exitedFlag = NVMEDIA_TRUE;
+        saveCtx->threadCtx[i].exitedFlag = NVMEDIA_FALSE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
         saveCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
         saveCtx->threadCtx[i].numFramesToSave = (testArgs->frames.isUsed)?
@@ -161,39 +161,6 @@ SaveInit(NvMainContext *mainCtx)
             status = NVMEDIA_STATUS_ERROR;
             goto failed;
         }
-        if (testArgs->displayEnabled) {
-            if (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW ) {
-                /* For RAW images, create conversion queue for converting RAW to RGB images */
-
-                surfAllocAttrs[0].type = NVM_SURF_ATTR_WIDTH;
-                surfAllocAttrs[0].value = saveCtx->threadCtx[i].width;
-                surfAllocAttrs[1].type = NVM_SURF_ATTR_HEIGHT;
-                surfAllocAttrs[1].value = saveCtx->threadCtx[i].height;
-                surfAllocAttrs[2].type = NVM_SURF_ATTR_CPU_ACCESS;
-                surfAllocAttrs[2].value = NVM_SURF_ATTR_CPU_ACCESS_UNCACHED;
-                numSurfAllocAttrs = 3;
-
-                NVM_SURF_FMT_DEFINE_ATTR(surfFormatAttrs);
-                NVM_SURF_FMT_SET_ATTR_RGBA(surfFormatAttrs,RGBA,UINT,8,PL);
-                status = CreateImageQueue(saveCtx->device,
-                                           &saveCtx->threadCtx[i].conversionQueue,
-                                           saveCtx->inputQueueSize,
-                                           saveCtx->threadCtx[i].width,
-                                           saveCtx->threadCtx[i].height,
-                                           NvMediaSurfaceFormatGetType(surfFormatAttrs, NVM_SURF_FMT_ATTR_MAX),
-                                           surfAllocAttrs,
-                                           numSurfAllocAttrs);
-                if (status != NVMEDIA_STATUS_OK) {
-                    LOG_ERR("%s: conversionQueue creation failed\n", __func__);
-                    goto failed;
-                }
-
-                LOG_DBG("%s: Save Conversion Queue %d: %ux%u, images: %u \n",
-                        __func__, i, saveCtx->threadCtx[i].width,
-                        saveCtx->threadCtx[i].height,
-                        saveCtx->inputQueueSize);
-            }
-        }
     }
     return NVMEDIA_STATUS_OK;
 failed:
@@ -216,6 +183,8 @@ SaveFini(NvMainContext *mainCtx)
     if (!saveCtx)
         return NVMEDIA_STATUS_OK;
 
+    *saveCtx->quit = NVMEDIA_TRUE;
+
     /* Wait for threads to exit */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
         if (saveCtx->saveThread[i]) {
@@ -225,8 +194,6 @@ SaveFini(NvMainContext *mainCtx)
             }
         }
     }
-
-    *saveCtx->quit = NVMEDIA_TRUE;
 
     /* Destroy threads */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
@@ -239,18 +206,6 @@ SaveFini(NvMainContext *mainCtx)
     }
 
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
-        /*For RAW Images, destroy the conversion queue */
-        if (saveCtx->threadCtx[i].conversionQueue) {
-            while (IsSucceed(NvQueueGet(saveCtx->threadCtx[i].conversionQueue, &image, 0))) {
-                if (image) {
-                    NvMediaImageDestroy(image);
-                    image = NULL;
-                }
-            }
-            LOG_DBG("%s: Destroying conversion queue \n",__func__);
-            NvQueueDestroy(saveCtx->threadCtx[i].conversionQueue);
-        }
-
         /*Flush and destroy the input queues*/
         if (saveCtx->threadCtx[i].inputQueue) {
             LOG_DBG("%s: Flushing the save input queue %d\n", __func__, i);
@@ -278,7 +233,6 @@ SaveFini(NvMainContext *mainCtx)
     LOG_INFO("%s: SaveFini done\n", __func__);
     return NVMEDIA_STATUS_OK;
 }
-
 
 NvMediaStatus
 SaveProc(NvMainContext *mainCtx)
