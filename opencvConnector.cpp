@@ -22,9 +22,14 @@ void Opencv_hello() {
     opencv->hello();
 }
 
-void Opencv_display(uint8_t *data, int width, int height, int bytesPerPixel) {
+void Opencv_sendFrame(uint8_t *data, int width, int height, int bytesPerPixel) {
     initWrapper();
-    opencv->display(data, width, height, bytesPerPixel);
+    opencv->sendFrame(data, width, height, bytesPerPixel);
+}
+
+void Opencv_display() {
+    initWrapper();
+    opencv->display();
 }
 
 void Opencv_startRecording(int fps, char *filename) {
@@ -37,9 +42,9 @@ void Opencv_stopRecording() {
     opencv->stopRecording();
 }
 
-void Opencv_recordFrame(uint8_t *data) {
+void Opencv_recordFrame() {
     initWrapper();
-    opencv->recordFrame(data);
+    opencv->recordFrame();
 }
 
 #ifdef __cplusplus

@@ -14,10 +14,11 @@ class OpencvWrapper {
         OpencvWrapper();
         ~OpencvWrapper();
         void hello();
-        void display(uint8_t *data, int width, int height, int bytesPerPixel);
+        void sendFrame(uint8_t *data, int width, int height, int bytesPerPixel);
+        void display();
         void startRecording(int fps, std::string filename);
         void stopRecording();
-        void recordFrame(uint8_t *data);
+        void recordFrame();
     private:
         uint8_t *imgBuffer;
         cv::Mat img;

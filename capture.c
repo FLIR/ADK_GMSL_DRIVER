@@ -11,6 +11,7 @@
 #include "os_common.h"
 #include "helpers.h"
 #include "save.h"
+#include "opencvConnector.h"
 
 static NvMediaStatus
 _DetermineCaptureStatus(NvMediaBool *captureFlag,
@@ -319,6 +320,7 @@ _CaptureThreadFunc(void *data)
     NvMediaStatus status;
     uint64_t tbegin = 0, tend = 0;
     NvMediaICP *icpInst = NULL;
+    uint8_t *imgData;
     uint32_t retry = 0;
 
     for (i = 0; i < threadCtx->icpExCtx->numVirtualGroups; i++) {
@@ -400,6 +402,24 @@ _CaptureThreadFunc(void *data)
                 goto done;
         }
 
+        // send frame to Opencv
+        if(!(imgData = malloc(capturedImage->width * capturedImage->height * 
+            threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
+        {
+            LOG_ERR("%s: Out of memory", __func__);
+            goto done;
+        }
+
+        status = ImageToBytes(capturedImage, imgData, threadCtx->rawBytesPerPixel);
+        if(status != NVMEDIA_STATUS_OK) {
+            LOG_ERR("%s: Could not convert image to bytes", __func__);
+            goto done;
+        }
+
+        Opencv_sendFrame(imgData, capturedImage->width, capturedImage->height,
+            threadCtx->rawBytesPerPixel);        
+
+        // calculate fps
         GetTimeMicroSec(&tend);
         uint64_t td = tend - tbegin;
         if (td > 3000000) {

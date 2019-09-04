@@ -8,10 +8,11 @@ extern "C" {
 #endif
 
 void Opencv_hello();
-void Opencv_display(uint8_t *data, int width, int height, int bytesPerPixel);
+void Opencv_sendFrame(uint8_t *data, int width, int height, int bytesPerPixel);
+void Opencv_display();
 void Opencv_startRecording(int fps, char *filename);
 void Opencv_stopRecording();
-void Opencv_recordFrame(uint8_t *data);
+void Opencv_recordFrame();
 
 #ifdef __cplusplus
 }

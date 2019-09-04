@@ -47,7 +47,6 @@ _SaveThreadFunc(void *data)
 {
     SaveThreadCtx *threadCtx = (SaveThreadCtx *)data;
     NvMediaImage *image = NULL;
-    uint8_t *imgData;
     NvMediaStatus status;
 
     char outputFileName[MAX_STRING_SIZE];
@@ -78,20 +77,7 @@ _SaveThreadFunc(void *data)
         }
 
         if(threadCtx->videoEnabled) {
-            if(!(imgData = malloc(image->width * image->height * 
-                threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
-            {
-                LOG_ERR("%s: Out of memory", __func__);
-                goto loop_done;
-            }
-
-            status = ImageToBytes(image, imgData, threadCtx->rawBytesPerPixel);
-            if(status != NVMEDIA_STATUS_OK) {
-                LOG_ERR("%s: Could not convert image to bytes", __func__);
-                goto loop_done;
-            }
-
-            Opencv_recordFrame(imgData);
+            Opencv_recordFrame();
         }
 
     loop_done:

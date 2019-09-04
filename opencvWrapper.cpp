@@ -24,10 +24,13 @@ void OpencvWrapper::hello() {
     cv::waitKey();
 }
 
-void OpencvWrapper::display(uint8_t *data, int width, int height, int bytesPerPixel) {
+void OpencvWrapper::sendFrame(uint8_t *data, int width, int height, int bytesPerPixel) {
     setImgBuffer(data, width, height, bytesPerPixel);
+}
+
+void OpencvWrapper::display() {
     cv::imshow("Boson", img);
-    cv::waitKey(10);
+    cv::waitKey(1);
 }
 
 void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytesPerPixel) {
@@ -53,16 +56,10 @@ void OpencvWrapper::stopRecording() {
     recorder.stop();
 }
 
-void OpencvWrapper::recordFrame(uint8_t *data) {
+void OpencvWrapper::recordFrame() {
     if(!recorder.recording) {
         return;
     }
-
-    int bytesPerPixel = 1;
-    if(img.type() == CV_16UC1) {
-        bytesPerPixel = 2;
-    }
-    setImgBuffer(data, recorder.width, recorder.height, bytesPerPixel);
 
     recorder.captureFrame();
 }

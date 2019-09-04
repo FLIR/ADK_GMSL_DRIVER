@@ -43,23 +43,7 @@ _DisplayThreadFunc(void *data)
             }
 
             if (attr[NVM_SURF_ATTR_SURF_TYPE].value == NVM_SURF_ATTR_SURF_TYPE_RAW) {
-                if(!(imgData = malloc(image->width * image->height * 
-                    threadCtx->rawBytesPerPixel * sizeof(uint8_t))))
-                {
-                    LOG_ERR("%s: Out of memory", __func__);
-                    goto loop_done;
-                }
-                status = ImageToBytes(image, imgData, threadCtx->rawBytesPerPixel);
-                if (status != NVMEDIA_STATUS_OK) {
-                    LOG_ERR("%s: imageToBytes failed for image %d in displayThread %d\n",
-                            __func__, totalCapturedFrames, threadCtx->virtualGroupIndex);
-                    *threadCtx->quit = NVMEDIA_TRUE;
-                    goto loop_done;
-                }
-
-                Opencv_display(imgData, image->width, image->height, 
-                    threadCtx->rawBytesPerPixel);
-
+                Opencv_display();
             } else {
                 LOG_ERR("%s: Unsupported input image type", __func__);
             }
