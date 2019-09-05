@@ -7,20 +7,20 @@
  * license agreement from NVIDIA CORPORATION is strictly prohibited.
  */
 
+#include <stdio.h>
 #include <signal.h>
 
 #include "main.h"
 #include "check_version.h"
 #include "capture.h"
 #include "save.h"
-// #include "composite.h"
+#include "bosonCommands.h"
 #include "display.h"
-// #include "grp_activate.h"
-// #include "capture_status.h"
 
 /* Quit flag. Out of context structure for sig handling */
 static volatile NvMediaBool *quit_flag;
 static volatile NvMediaBool *recording_flag;
+static char *cmd_listener;
 
 static void
 SigHandler(int signum)
@@ -74,10 +74,10 @@ ExecuteNextCommand(NvMainContext *ctx) {
     if (!strcasecmp(input, "q") || !strcasecmp(input, "quit")) {
         *quit_flag = NVMEDIA_TRUE;
         return 0;
-    }
-
-    if (!strcasecmp(input, "r")) {
+    } else if (!strcasecmp(input, "r")) {
         *recording_flag = NVMEDIA_TRUE;
+    } else if(input[0] != '\0') {
+        sprintf(cmd_listener, input);
     }
 
     return 0;
@@ -116,6 +116,7 @@ int main(int argc,
 
     memset(&allArgs, 0, sizeof(TestArgs));
     memset(&mainCtx, 0 , sizeof(NvMainContext));
+    mainCtx.cmd = malloc(256);
 
     if (CheckModulesVersion() != NVMEDIA_STATUS_OK) {
         return -1;
@@ -127,6 +128,7 @@ int main(int argc,
 
     quit_flag = &mainCtx.quit;
     recording_flag = &mainCtx.toggleRecording;
+    cmd_listener = mainCtx.cmd;
     SigSetup();
 
     /* Initialize context */
@@ -138,35 +140,20 @@ int main(int argc,
         goto done;
     }
 
-//     if (RuntimeSettingsInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize RuntimeSettings\n", __func__);
-//         goto done;
-//     }
+    if (BosonInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Failed to Initialize Boson Commands\n", __func__);
+        goto done;
+    }
 
     if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Save\n", __func__);
         goto done;
     }
 
-//     if (CompositeInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize Composite\n", __func__);
-//         goto done;
-//     }
-
     if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Display\n", __func__);
         goto done;
     }
-
-//     if (GrpActivationInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize GrpActivation\n", __func__);
-//         goto done;
-//     }
-
-//     if (CaptureStatusInit(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: Failed to Initialize CaptureStatus\n", __func__);
-//         goto done;
-//     }
 
     /* Call Proc for each component */
     if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
@@ -174,35 +161,20 @@ int main(int argc,
         goto done;
     }
 
-//     if (RuntimeSettingsProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: RuntimeSettingsProc Failed\n", __func__);
-//         goto done;
-//     }
+    if (BosonProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: BosonProc Failed\n", __func__);
+        goto done;
+    }
 
     if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: SaveProc Failed\n", __func__);
         goto done;
     }
 
-//     if (CompositeProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: CompositeProc Failed\n", __func__);
-//         goto done;
-//     }
-
     if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: DisplayProc Failed\n", __func__);
         goto done;
     }
-
-//     if (GrpActivationProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: ErHandlerProc Failed\n", __func__);
-//         goto done;
-//     }
-
-//     if (CaptureStatusProc(&mainCtx) != NVMEDIA_STATUS_OK) {
-//         LOG_ERR("%s: CmdHandlerProc Failed\n", __func__);
-//         goto done;
-//     }
 
 //     /* unblock the signals, they will be handled only by the main thread */
 //     status = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
@@ -218,12 +190,9 @@ int main(int argc,
     }
 
 done:
-//     CaptureStatusFini(&mainCtx);
-//     GrpActivationFini(&mainCtx);
     DisplayFini(&mainCtx);
-//     CompositeFini(&mainCtx);
     SaveFini(&mainCtx);
-//     RuntimeSettingsFini(&mainCtx);
+    BosonFini(&mainCtx);
     CaptureFini(&mainCtx);
     return 0;
 }

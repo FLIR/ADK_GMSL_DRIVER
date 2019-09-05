@@ -84,15 +84,15 @@ D8 1B 20
 D8 0B 03
 ; Delay 5ms
 
-D8 09 02
-D8 00 8E
+D8 09 02 # turns off transmitter to allow spooling
+D8 00 8E # start flag
 D8 00 00
 D8 00 12
 D8 00 C0
 D8 00 FF
 D8 00 EE
 D8 00 00
-D8 00 06 
+D8 00 06
 D8 00 00
 D8 00 0F
 D8 00 FF
@@ -105,5 +105,5 @@ D8 00 00
 D8 00 01
 D8 00 12
 D8 00 0B
-D8 00 AE
-D8 09 00
+D8 00 AE # end flag
+D8 09 00 # turns on transmitter

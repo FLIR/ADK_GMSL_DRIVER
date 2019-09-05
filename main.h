@@ -15,11 +15,8 @@
 enum {
     CAPTURE_ELEMENT = 0,
     SAVE_ELEMENT,
-    COMPOSITE_ELEMENT,
     DISPLAY_ELEMENT,
-    GRP_ACTIVATION_ELEMENT,
-    CAPTURE_STATUS_ELEMENT,
-    RUNTIME_SETTINGS_ELEMENT,
+    BOSON_ELEMENT,
     MAX_NUM_ELEMENTS,
 };
 
@@ -28,6 +25,7 @@ typedef struct {
     TestArgs                    *testArgs;
     volatile NvMediaBool         quit;
     volatile NvMediaBool         toggleRecording;
+    char                        *cmd;
 } NvMainContext;
 
 #endif

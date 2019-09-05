@@ -16,14 +16,11 @@ LDFLAGS  = $(NV_PLATFORM_SDK_LIB) $(NV_PLATFORM_TARGET_LIB) $(NV_PLATFORM_LDFLAG
 
 OBJS   := main.o
 OBJS   += capture.o
-# OBJS   += capture_status.o
+OBJS   += bosonCommands.o
 OBJS   += check_version.o
 OBJS   += cmdline.o
-# OBJS   += composite.o
 OBJS   += helpers.o
 OBJS   += display.o
-# OBJS   += grp_activate.o
-# OBJS   += runtime_settings.o
 OBJS   += i2cCommands.o
 OBJS   += parser.o
 OBJS   += save.o
