@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "os_common.h"
 
@@ -42,8 +43,11 @@ static uint16_t CRC16_XMODEM_TABLE[256] = {
 0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0,
 };
 
-static uint16_t _ffcCommand[8] = {0x00, 0x05, 0x00, 0x07};
-static uint16_t _getSNCommand[8] = {0x00, 0x05, 0x00, 0x02};
+static uint16_t _cmdStart[7] = {0x902, 0x8E, 0x00, 0x12, 0xC0, 0xFF, 0xEE};
+static uint16_t _cmdEnd[2] = {0xAE, 0x900};
+static uint16_t _ffcCommand[4] = {0x00, 0x05, 0x00, 0x07};
+static uint16_t _getSNCommand[4] = {0x00, 0x05, 0x00, 0x02};
+static uint16_t _changePaletteCommand[4] = {0x00, 0x0B, 0x00, 0x01};
 
 static void
 _GetCRC(uint16_t *data, uint32_t length, uint16_t *outCrc) {
@@ -64,12 +68,13 @@ _GetCRC(uint16_t *data, uint32_t length, uint16_t *outCrc) {
 static void
 _CreateCommand(uint16_t *cmdBody, uint16_t *outCmd) {
     // stop spooling, send start flag and arbitrary start data
-    uint16_t totalCmd[19] = {0x902, 0x8E, 0x00, 0x12, 0xC0, 0xFF, 0xEE};
+    uint16_t totalCmd[19];
     uint16_t crc[2];
-    // uint16_t crc[2] = {0x6C, 0x5E};
-
+    
+    //copy start of command
+    memcpy(totalCmd, _cmdStart, sizeof(_cmdStart));
     // copy data type and value
-    memcpy(&totalCmd[7], cmdBody, 4 * sizeof(uint16_t));
+    memcpy(&totalCmd[7], cmdBody, sizeof(cmdBody));
     // sending a command so status is 4 0xFF bytes
     for (size_t i = 11; i < 15; i++) {
         totalCmd[i] = 0xFF;
@@ -77,15 +82,32 @@ _CreateCommand(uint16_t *cmdBody, uint16_t *outCmd) {
     _GetCRC(&totalCmd[2], 13, crc);
     memcpy(&totalCmd[15], crc, sizeof(crc));
 
-    // send stop flag
-    totalCmd[17] = 0xAE;
-    // start spooling
-    totalCmd[18] = 0x900;
+    // send stop flag and start spooling
+    memcpy(&totalCmd[17], _cmdEnd, sizeof(_cmdEnd));
+
+    memcpy(outCmd, totalCmd, sizeof(totalCmd));
+}
+
+static void
+_CreateParamCommand(uint16_t *cmdBody, uint32_t value, uint16_t *outCmd) {
+    uint16_t totalCmd[23];
+    uint16_t crc[2];
+
+    memcpy(totalCmd, _cmdStart, sizeof(_cmdStart));
+    memcpy(&totalCmd[7], cmdBody, sizeof(cmdBody));
+    for (size_t i = 11; i < 15; i++) {
+        totalCmd[i] = 0xFF;
+    }
+    memcpy(&totalCmd[15], &value, sizeof(value));
+    _GetCRC(&totalCmd[2], 17, crc);
+    memcpy(&totalCmd[19], crc, sizeof(crc));
+    memcpy(&totalCmd[21], _cmdEnd, sizeof(_cmdEnd));
+
     memcpy(outCmd, totalCmd, sizeof(totalCmd));
 }
 
 static NvMediaStatus
-_SendCommand(uint32_t sensorAddress, uint16_t *cmd) {
+_SendCommand(uint32_t sensorAddress, uint16_t *cmd, uint32_t length) {
     I2cHandle handle = NULL;
     NvMediaStatus status = NVMEDIA_STATUS_OK;
 
@@ -96,7 +118,7 @@ _SendCommand(uint32_t sensorAddress, uint16_t *cmd) {
         return NVMEDIA_STATUS_ERROR;
     }
 
-    for (size_t i = 0; i < 19; i++) {
+    for (size_t i = 0; i < length; i++) {
         uint8_t intsruction[2] = {cmd[i] >> 8, cmd[i] & 0xFF};
 
         if(testutil_i2c_write_subaddr(handle, sensorAddress, 
@@ -116,22 +138,72 @@ _SendCommand(uint32_t sensorAddress, uint16_t *cmd) {
     return status;
 }
 
+static NvMediaStatus
+_ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
+    I2cHandle handle = NULL;
+    unsigned char respByte;
+    NvMediaStatus status = NVMEDIA_STATUS_OK;   
+
+    testutil_i2c_open(0, &handle);
+    if(!handle) {
+        LOG_ERR("%s: Failed to open handle with id %u\n", __func__,
+            sensorAddress);
+        return NVMEDIA_STATUS_ERROR;
+    }
+
+    *response = 0;
+    for (size_t i = 0; i < 4; i++)
+    {
+        testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
+            sizeof(char), &respByte, sizeof(char));
+        *response += (respByte << (24 - (i * 8)));
+    }
+    
+    testutil_i2c_close(handle);
+
+    return status;
+}
+
 static uint32_t
 _BosonThreadFunc(void *data) {
     BosonThreadCtx *threadCtx = (BosonThreadCtx *)data;
     NvMediaStatus status;
-    uint16_t cmd[19];
+    uint32_t receivedData = 0;
+    bool hasResponse = false;
+    uint16_t cmd[64];
+    uint32_t cmdLength;
 
     while(!(*threadCtx->quit)) {
         if(threadCtx->cmd && threadCtx->cmd[0] != '\0') {
             if(!strcasecmp(threadCtx->cmd, "f")) {
                 _CreateCommand(_ffcCommand, cmd);
+                cmdLength = 19;
+            } else if(!strcasecmp(threadCtx->cmd, "sn")) {
+                _CreateCommand(_getSNCommand, cmd);
+                hasResponse = true;
+                cmdLength = 19;
+            } else if(!strcasecmp(threadCtx->cmd, "w")) {
+                _CreateParamCommand(_changePaletteCommand, 0, cmd);
+                cmdLength = 23;
+            } else if(!strcasecmp(threadCtx->cmd, "b")) {
+                _CreateParamCommand(_changePaletteCommand, 1, cmd);
+                cmdLength = 23;
             } else {
                 goto input_done;
             }
-            status = _SendCommand(threadCtx->sensorAddress, cmd);
+            status = _SendCommand(threadCtx->sensorAddress, cmd, cmdLength);
             if(status != NVMEDIA_STATUS_OK) {
                 LOG_ERR("%s: Unable to send I2C command", __func__);
+                goto input_done;
+            }
+            if(hasResponse) {
+                nvsleep(1000);
+                status = _ReceiveData(threadCtx->sensorAddress, 0, &receivedData);
+                if(status != NVMEDIA_STATUS_OK) {
+                    LOG_ERR("%s: Unable to receive I2C command", __func__);
+                    goto input_done;
+                }
+                printf("%x\n", receivedData);
             }
 
         input_done:
