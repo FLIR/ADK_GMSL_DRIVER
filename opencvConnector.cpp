@@ -27,6 +27,11 @@ void Opencv_sendFrame(uint8_t *data, int width, int height, int bytesPerPixel) {
     opencv->sendFrame(data, width, height, bytesPerPixel);
 }
 
+void Opencv_sendTelemetry(uint8_t *data, int stride) {
+    initWrapper();
+    opencv->sendTelemetry(data, stride);
+}
+
 void Opencv_display() {
     initWrapper();
     opencv->display();
@@ -45,6 +50,11 @@ void Opencv_stopRecording() {
 void Opencv_recordFrame() {
     initWrapper();
     opencv->recordFrame();
+}
+
+uint32_t Opencv_getSerialNumber() {
+    initWrapper();
+    return opencv->getSerialNumber();
 }
 
 #ifdef __cplusplus

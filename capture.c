@@ -411,7 +411,7 @@ _CaptureThreadFunc(void *data)
             goto done;
         }
         if(!(telemetry = malloc(capturedImage->width * 
-            threadCtx->rawBytesPerPixel * sizeof(uint8_t))));
+            threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
         {
             LOG_ERR("%s: Out of memory", __func__);
             goto done;
@@ -425,7 +425,9 @@ _CaptureThreadFunc(void *data)
         }
 
         Opencv_sendFrame(imgData, capturedImage->width, capturedImage->height,
-            threadCtx->rawBytesPerPixel);        
+            threadCtx->rawBytesPerPixel);
+        Opencv_sendTelemetry(telemetry, 
+            capturedImage->width * threadCtx->rawBytesPerPixel);
 
         // calculate fps
         GetTimeMicroSec(&tend);

@@ -19,10 +19,13 @@ class OpencvWrapper {
         void startRecording(int fps, std::string filename);
         void stopRecording();
         void recordFrame();
+        void sendTelemetry(uint8_t *data, int stride);
+        uint32_t getSerialNumber();
     private:
         uint8_t *imgBuffer;
         cv::Mat img;
         OpencvRecorder recorder;
+        uint32_t serialNumber;
 
         void setImgBuffer(uint8_t *data, int width, int height, int bytesPerPixel);
         void agc();

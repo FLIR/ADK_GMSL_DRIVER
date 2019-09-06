@@ -7,6 +7,7 @@
 
 #include "capture.h"
 #include "bosonCommands.h"
+#include "opencvConnector.h"
 
 static uint16_t CRC16_XMODEM_TABLE[256] = {
 0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -172,6 +173,7 @@ _BosonThreadFunc(void *data) {
     bool hasResponse = false;
     uint16_t cmd[64];
     uint32_t cmdLength;
+    uint32_t serialNumber;
 
     while(!(*threadCtx->quit)) {
         if(threadCtx->cmd && threadCtx->cmd[0] != '\0') {
@@ -179,9 +181,12 @@ _BosonThreadFunc(void *data) {
                 _CreateCommand(_ffcCommand, cmd);
                 cmdLength = 19;
             } else if(!strcasecmp(threadCtx->cmd, "sn")) {
-                _CreateCommand(_getSNCommand, cmd);
-                hasResponse = true;
-                cmdLength = 19;
+                // _CreateCommand(_getSNCommand, cmd);
+                // hasResponse = true;
+                // cmdLength = 19;
+                serialNumber = Opencv_getSerialNumber();
+                printf("%d\n", serialNumber);
+                goto input_done;
             } else if(!strcasecmp(threadCtx->cmd, "w")) {
                 _CreateParamCommand(_changePaletteCommand, 0, cmd);
                 cmdLength = 23;

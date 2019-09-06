@@ -85,7 +85,7 @@ ImageToBytes(NvMediaImage *imgSrc,
         srcPitch * (srcHeight - 1) * sizeof(uint8_t));
 
     // get telemetry data
-    memcpy(dstBuffer, pSrcBuff, srcPitch * sizeof(uint8_t));
+    memcpy(telemetry, pSrcBuff, srcPitch * sizeof(uint8_t));
 
     if(pSrcBuff)
         free(pSrcBuff);

@@ -64,6 +64,14 @@ void OpencvWrapper::recordFrame() {
     recorder.captureFrame();
 }
 
+void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
+    memcpy(&serialNumber, &data[2], 4 * sizeof(uint8_t));
+}
+
+uint32_t OpencvWrapper::getSerialNumber() {
+    return serialNumber;
+}
+
 void OpencvWrapper::agc() {
     int bytesPerPixel = 1;
     if(img.type() == CV_16UC1) {
