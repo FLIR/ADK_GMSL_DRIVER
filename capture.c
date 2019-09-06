@@ -321,6 +321,7 @@ _CaptureThreadFunc(void *data)
     uint64_t tbegin = 0, tend = 0;
     NvMediaICP *icpInst = NULL;
     uint8_t *imgData;
+    uint8_t *telemetry;
     uint32_t retry = 0;
 
     for (i = 0; i < threadCtx->icpExCtx->numVirtualGroups; i++) {
@@ -409,8 +410,15 @@ _CaptureThreadFunc(void *data)
             LOG_ERR("%s: Out of memory", __func__);
             goto done;
         }
+        if(!(telemetry = malloc(capturedImage->width * 
+            threadCtx->rawBytesPerPixel * sizeof(uint8_t))));
+        {
+            LOG_ERR("%s: Out of memory", __func__);
+            goto done;
+        }
 
-        status = ImageToBytes(capturedImage, imgData, threadCtx->rawBytesPerPixel);
+        status = ImageToBytes(capturedImage, imgData, telemetry, 
+            threadCtx->rawBytesPerPixel);
         if(status != NVMEDIA_STATUS_OK) {
             LOG_ERR("%s: Could not convert image to bytes", __func__);
             goto done;

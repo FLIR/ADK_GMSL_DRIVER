@@ -18,6 +18,7 @@ CreateImageQueue(NvMediaDevice *device,
 NvMediaStatus
 ImageToBytes(NvMediaImage *imgSrc,
             uint8_t *dstBuffer,
+            uint8_t *telemetry,
             uint32_t rawBytesPerPixel);
 
 

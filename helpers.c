@@ -53,6 +53,7 @@ CreateImageQueue(NvMediaDevice *device,
 NvMediaStatus
 ImageToBytes(NvMediaImage *imgSrc,
               uint8_t *dstBuffer,
+              uint8_t *telemetry,
               uint32_t rawBytesPerPixel)
 {
     uint8_t *pSrcBuff = NULL;
@@ -82,6 +83,9 @@ ImageToBytes(NvMediaImage *imgSrc,
     // skip the first row (telemetry line)
     memcpy(dstBuffer, &pSrcBuff[srcPitch], 
         srcPitch * (srcHeight - 1) * sizeof(uint8_t));
+
+    // get telemetry data
+    memcpy(dstBuffer, pSrcBuff, srcPitch * sizeof(uint8_t));
 
     if(pSrcBuff)
         free(pSrcBuff);
