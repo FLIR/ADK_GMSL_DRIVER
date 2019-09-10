@@ -5,6 +5,7 @@
 
 #include "os_common.h"
 
+#include "helpers.h"
 #include "capture.h"
 #include "bosonCommands.h"
 #include "opencvConnector.h"
@@ -50,9 +51,10 @@ static uint16_t _cmdStart[7] = {0x902, 0x8E, 0x00, 0x12, 0xC0, 0xFF, 0xEE};
 static uint16_t _cmdEnd[2] = {0xAE, 0x900};
 static uint16_t _ffcCommand[4] = {0x00, 0x05, 0x00, 0x07};
 static uint16_t _getSNCommand[4] = {0x00, 0x05, 0x00, 0x02};
-static uint16_t _changePaletteCommand[4] = {0x00, 0x0B, 0x00, 0x01};
+static uint16_t _changePaletteCommand[4] = {0x00, 0x0B, 0x00, 0x03};
 static uint16_t _setFFCMode[4] = {0x00, 0x05, 0x00, 0x12};
 static uint16_t _getPacking[4] = {0x00, 0x04, 0x00, 0x06};
+static uint16_t _getPalette[4] = {0x00, 0x0B, 0x00, 0x04};
 
 static void
 _GetCRC(uint16_t *data, uint32_t length, uint16_t *outCrc) {
@@ -212,40 +214,14 @@ finally:
     return status;
 }
 
-static void
-_ClearBuffer(uint32_t sensorAddress, uint8_t reg) {
-    uint32_t response = 1;
-    uint32_t numTries = 0;
-    uint8_t respByte;
-    I2cHandle handle = NULL;
-
-    testutil_i2c_open(0, &handle);
-    if(!handle) {
-        LOG_ERR("%s: Failed to open handle with id %u\n", __func__,
-            sensorAddress);
-        goto finally;
-    }
-
-    while(response > 0 && numTries < 50) {
-        response = 0;
-        for (size_t i = 0; i < 4; i++)
-        {
-            testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
-                sizeof(char), &respByte, sizeof(char));
-            response += (respByte << (24 - (i * 8)));
-        }
-        numTries++;
-    }
-
-finally:
-    testutil_i2c_close(handle);
-}
-
 static NvMediaStatus
 _ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
     I2cHandle handle = NULL;
     unsigned char respByte;
-    NvMediaStatus status = NVMEDIA_STATUS_OK;   
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
+    int startIdx = -1;
+    uint32_t cmdStatus;
+    uint8_t buffer[64];  
 
     testutil_i2c_open(0, &handle);
     if(!handle) {
@@ -256,12 +232,37 @@ _ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
     }
 
     *response = 0;
-    for (size_t i = 0; i < 4; i++)
+    for (size_t i = 0; i < 64; i++)
     {
         testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
             sizeof(char), &respByte, sizeof(char));
+        if(respByte == 0x8e) {
+            startIdx = i + 1;
+            continue;
+        }
+        if(respByte == 0xae) {
+            startIdx = -1;
+            break;
+        }
+        if(startIdx > -1) {
+            buffer[i - startIdx] = respByte;
+        }
         *response += (respByte << (24 - (i * 8)));
     }
+    // if there was never an end flag
+    if(startIdx != -1) {
+        LOG_ERR("%s: No termination character found", __func__);
+        status = NVMEDIA_STATUS_ERROR;
+        goto finally;
+    }
+    LsbToMsb32(&cmdStatus, &buffer[9]);
+    if(cmdStatus) {
+        LOG_ERR("%s: Error reading buffer - %d", __func__, cmdStatus);
+        status = NVMEDIA_STATUS_ERROR;
+        goto finally;
+    }
+
+    LsbToMsb32(response, &buffer[13]);
     
 finally:
     testutil_i2c_close(handle);
@@ -297,7 +298,10 @@ _BosonThreadFunc(void *data) {
             } else if(!strcasecmp(threadCtx->cmd, "sn")) {
                 serialNumber = Opencv_getSerialNumber();
                 printf("%d\n", serialNumber);
-                goto input_done;
+                _ResetI2CBuffer(threadCtx->sensorAddress);
+                _CreateCommand(_getSNCommand, cmd, &cmdLength);
+                hasResponse = true;
+                // goto input_done;
             } else if(!strcasecmp(threadCtx->cmd, "w")) {
                 _CreateParamCommand(_changePaletteCommand, 0, cmd);
             } else if(!strcasecmp(threadCtx->cmd, "b")) {
@@ -313,6 +317,11 @@ _BosonThreadFunc(void *data) {
                 _ResetI2CBuffer(threadCtx->sensorAddress);
                 _CreateCommand(_getPacking, cmd, &cmdLength);
                 hasResponse = true;
+            } else if(!strcasecmp(threadCtx->cmd, "c")) {
+                // get color mode
+                _ResetI2CBuffer(threadCtx->sensorAddress);
+                _CreateCommand(_getPalette, cmd, &cmdLength);
+                hasResponse = true;
             } else {
                 goto input_done;
             }
@@ -323,15 +332,12 @@ _BosonThreadFunc(void *data) {
             }
             if(hasResponse) {
                 nvsleep(1000);
-                _ClearBuffer(threadCtx->sensorAddress, 0);
-                nvsleep(1000);
                 status = _ReceiveData(threadCtx->sensorAddress, 0, &receivedData);
                 if(status != NVMEDIA_STATUS_OK) {
                     LOG_ERR("%s: Unable to receive I2C command", __func__);
                     goto input_done;
                 }
                 printf("%d\n", receivedData);
-                printf("%x\n", receivedData);
             }
 
         input_done:

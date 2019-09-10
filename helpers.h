@@ -21,5 +21,7 @@ ImageToBytes(NvMediaImage *imgSrc,
             uint8_t *telemetry,
             uint32_t rawBytesPerPixel);
 
+void
+LsbToMsb32(uint32_t *dest, uint8_t *src);
 
 #endif
