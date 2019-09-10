@@ -70,9 +70,11 @@ void OpencvWrapper::recordFrame() {
 }
 
 void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
+    int serialStart = 2;
+
     serialNumber = 0;
     for (size_t i = 0; i < 4; i++) {
-        serialNumber += (uint32_t)(data[i] << (24 - (8 * i)));
+        serialNumber += (uint32_t)(data[i + serialStart] << (24 - (8 * i)));
     }
 }
 

@@ -295,13 +295,9 @@ _BosonThreadFunc(void *data) {
             if(!strcasecmp(threadCtx->cmd, "f")) {
                 _CreateCommand(_ffcCommand, cmd, &cmdLength);
             } else if(!strcasecmp(threadCtx->cmd, "sn")) {
-                _ResetI2CBuffer(threadCtx->sensorAddress);
-                nvsleep(1000);
-                _CreateCommand(_getSNCommand, cmd, &cmdLength);
-                hasResponse = true;
-                // serialNumber = Opencv_getSerialNumber();
-                // printf("%d\n", serialNumber);
-                // goto input_done;
+                serialNumber = Opencv_getSerialNumber();
+                printf("%d\n", serialNumber);
+                goto input_done;
             } else if(!strcasecmp(threadCtx->cmd, "w")) {
                 _CreateParamCommand(_changePaletteCommand, 0, cmd);
             } else if(!strcasecmp(threadCtx->cmd, "b")) {

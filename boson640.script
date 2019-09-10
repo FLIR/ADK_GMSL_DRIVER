@@ -147,9 +147,9 @@ D8 00 FF
 D8 00 00
 D8 00 00
 D8 00 00
-D8 00 01
-D8 00 B6
-D8 00 03
+D8 00 02
+D8 00 6D
+D8 00 43
 D8 00 AE # end flag
 # set telemetry location to top
 D8 00 8E # start flag
