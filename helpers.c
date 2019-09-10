@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "log_utils.h"
 #include "misc_utils.h"
 
@@ -81,11 +83,19 @@ ImageToBytes(NvMediaImage *imgSrc,
     NvMediaImageUnlock(imgSrc);
 
     // skip the first row (telemetry line)
-    memcpy(dstBuffer, &pSrcBuff[srcPitch], 
+    // memcpy(dstBuffer, &pSrcBuff[srcPitch], 
+    //     srcPitch * (srcHeight - 1) * sizeof(uint8_t));
+    memcpy(dstBuffer, &pSrcBuff[0], 
         srcPitch * (srcHeight - 1) * sizeof(uint8_t));
 
     // get telemetry data
     memcpy(telemetry, pSrcBuff, srcPitch * sizeof(uint8_t));
+
+    FILE *fp = fopen("telemetry.txt", "w");
+    for (size_t i = 0; i < srcPitch; i++) {
+        fprintf(fp, "%02x", telemetry[i]);
+    }
+    fclose(fp);    
 
     if(pSrcBuff)
         free(pSrcBuff);

@@ -43,7 +43,12 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytes
         img = cv::Mat(height, width, pixelType, 
             reinterpret_cast<void *>(imgBuffer));
     }
-    memcpy(imgBuffer, data, width * height * bytesPerPixel * sizeof(uint8_t));
+    for (size_t i = 0; i < width * height * bytesPerPixel; i+=bytesPerPixel) {
+        for (size_t j = 0; j < bytesPerPixel; j++) {
+            imgBuffer[i+j] = data[i + (bytesPerPixel - j - 1)];
+        }
+    }
+    
     agc();
 }
 
@@ -65,7 +70,10 @@ void OpencvWrapper::recordFrame() {
 }
 
 void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
-    memcpy(&serialNumber, &data[2], 4 * sizeof(uint8_t));
+    serialNumber = 0;
+    for (size_t i = 0; i < 4; i++) {
+        serialNumber += (uint32_t)(data[i] << (24 - (8 * i)));
+    }
 }
 
 uint32_t OpencvWrapper::getSerialNumber() {
