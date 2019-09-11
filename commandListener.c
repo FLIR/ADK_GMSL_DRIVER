@@ -7,7 +7,7 @@
 
 #include "helpers.h"
 #include "capture.h"
-#include "bosonCommands.h"
+#include "commandListener.h"
 #include "opencvConnector.h"
 
 static uint16_t CRC16_XMODEM_TABLE[256] = {
@@ -231,7 +231,6 @@ _ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
         goto finally;
     }
 
-    *response = 0;
     for (size_t i = 0; i < 64; i++)
     {
         testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
@@ -247,7 +246,6 @@ _ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
         if(startIdx > -1) {
             buffer[i - startIdx] = respByte;
         }
-        *response += (respByte << (24 - (i * 8)));
     }
     // if there was never an end flag
     if(startIdx != -1) {
@@ -351,7 +349,7 @@ _BosonThreadFunc(void *data) {
 }
 
 NvMediaStatus
-BosonInit(NvMainContext *mainCtx) {
+ListenerInit(NvMainContext *mainCtx) {
     NvBosonContext *bosonCtx = NULL;
     uint32_t i = 0;
     TestArgs *testArgs = mainCtx->testArgs;
@@ -385,7 +383,7 @@ BosonInit(NvMainContext *mainCtx) {
 }
 
 NvMediaStatus
-BosonFini(NvMainContext *mainCtx) {
+ListenerFini(NvMainContext *mainCtx) {
     NvBosonContext *bosonCtx;
     uint32_t i = 0;
     NvMediaStatus status = NVMEDIA_STATUS_OK;
@@ -424,7 +422,7 @@ BosonFini(NvMainContext *mainCtx) {
 }
 
 NvMediaStatus
-BosonProc(NvMainContext *mainCtx) {
+ListenerProc(NvMainContext *mainCtx) {
     if (!mainCtx) {
         LOG_ERR("%s: Bad parameter\n", __func__);
         return NVMEDIA_STATUS_ERROR;

@@ -16,7 +16,8 @@ LDFLAGS  = $(NV_PLATFORM_SDK_LIB) $(NV_PLATFORM_TARGET_LIB) $(NV_PLATFORM_LDFLAG
 
 OBJS   := main.o
 OBJS   += capture.o
-OBJS   += bosonCommands.o
+OBJS   += commandListener.o
+OBJS   += bosonInterface.o
 OBJS   += check_version.o
 OBJS   += cmdline.o
 OBJS   += helpers.o

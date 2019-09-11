@@ -14,7 +14,7 @@
 #include "check_version.h"
 #include "capture.h"
 #include "save.h"
-#include "bosonCommands.h"
+#include "commandListener.h"
 #include "display.h"
 
 /* Quit flag. Out of context structure for sig handling */
@@ -140,7 +140,7 @@ int main(int argc,
         goto done;
     }
 
-    if (BosonInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (ListenerInit(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Boson Commands\n", __func__);
         goto done;
     }
@@ -161,7 +161,7 @@ int main(int argc,
         goto done;
     }
 
-    if (BosonProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (ListenerProc(&mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: BosonProc Failed\n", __func__);
         goto done;
     }
@@ -192,7 +192,7 @@ int main(int argc,
 done:
     DisplayFini(&mainCtx);
     SaveFini(&mainCtx);
-    BosonFini(&mainCtx);
+    ListenerFini(&mainCtx);
     CaptureFini(&mainCtx);
     return 0;
 }

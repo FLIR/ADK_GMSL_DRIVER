@@ -1,5 +1,5 @@
-#ifndef __BOSON_COMMANDS_H__
-#define __BOSON_COMMANDS_H__
+#ifndef __COMMAND_LISTENER_H__
+#define __COMMAND_LISTENER_H__
 
 #include <stdio.h>
 #include "nvmedia_core.h"
@@ -23,12 +23,12 @@ typedef struct {
 } NvBosonContext;
 
 NvMediaStatus
-BosonInit(NvMainContext *mainCtx);
+ListenerInit(NvMainContext *mainCtx);
 
 NvMediaStatus
-BosonFini(NvMainContext *mainCtx);
+ListenerFini(NvMainContext *mainCtx);
 
 NvMediaStatus
-BosonProc(NvMainContext *mainCtx);
+ListenerProc(NvMainContext *mainCtx);
 
 #endif
