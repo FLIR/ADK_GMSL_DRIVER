@@ -104,9 +104,16 @@ ImageToBytes(NvMediaImage *imgSrc,
 }
 
 void
-LsbToMsb32(uint32_t *dest, uint8_t *src) {
+MsbToLsb32(uint32_t *dest, uint8_t *src) {
     *dest = 0;
     for (size_t i = 0; i < 4; i++) {
         *dest += src[i] << (24 - (8 * i));
+    }
+}
+
+void
+LsbToMsbArr(uint8_t *dest, uint32_t src) {
+    for (size_t i = 0; i < 4; i++) {
+        dest[i] = (src >> (24 - (8 * i))) & 0xFF;
     }
 }

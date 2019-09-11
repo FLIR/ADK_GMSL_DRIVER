@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "testutil_i2c.h"
 #include "helpers.h"
 
@@ -9,13 +11,22 @@ static uint16_t _cmdStart[7] = {0x902, 0x8E, 0x00, 0x12, 0xC0, 0xFF, 0xEE};
 static uint16_t _cmdEnd[2] = {0xAE, 0x900};
 
 static void
-_EscapeCmd(uint16_t *cmd, uint32_t *length) {
+_EscapeCmd(uint16_t *cmd) {
     uint16_t tempCmd[64];
     uint32_t ei = 0;
+    uint32_t i;
 
-    // loop over command but skip start and end characters
-    for (size_t i = 2; i < (int)(*length - 2); i++) {
+    // copy start of command over
+    memcpy(tempCmd, cmd, 2 * sizeof(uint8_t));
+
+    // loop over command but skip start characters
+    for (i = 2; i < 64; i++) {
+        if(cmd[i] == _cmdEnd[0]) {
+            break;
+        }
+
         tempCmd[i+ei] = cmd[i];
+
         for (size_t j = 0; j < 3; j++) {
             if(_charsToEscape[j] == cmd[i]) {
                 tempCmd[i+ei] = _escapeChar;
@@ -26,8 +37,12 @@ _EscapeCmd(uint16_t *cmd, uint32_t *length) {
         }
     }
 
-    *length += ei;
-    memcpy(cmd, tempCmd, *length * sizeof(uint8_t));    
+    // if there's no end token, just return
+    if(i == 64) {
+        return;
+    }
+
+    memcpy(cmd, tempCmd, (i + ei) * sizeof(uint8_t));    
 }
 
 static void
@@ -77,8 +92,8 @@ finally:
     return status;
 }
 
-static void
-CreateCommand(uint16_t *cmdBody, uint16_t *outCmd, uint32_t *length) {
+void
+BuildCommand(uint16_t *cmdBody, uint32_t value, uint16_t *outCmd) {
     // stop spooling, send start flag and arbitrary start data
     uint16_t totalCmd[64];
     uint16_t crc[2];
@@ -96,6 +111,11 @@ CreateCommand(uint16_t *cmdBody, uint16_t *outCmd, uint32_t *length) {
     }
     cmdIdx += 4;
 
+    if(value) {
+        LsbToMsbArr(&totalCmd[cmdIdx], value);
+        cmdIdx += 4;
+    }
+
     _GetCRC(&totalCmd[2], cmdIdx - 2, crc);
     memcpy(&totalCmd[cmdIdx], crc, sizeof(crc));
     cmdIdx += sizeof(crc) / sizeof(crc[0]);
@@ -105,36 +125,14 @@ CreateCommand(uint16_t *cmdBody, uint16_t *outCmd, uint32_t *length) {
     cmdIdx += sizeof(_cmdEnd) / sizeof(_cmdEnd[0]);
 
     memcpy(outCmd, totalCmd, sizeof(totalCmd));
-    *length = cmdIdx;
-}
-
-void
-CreateParamCommand(uint16_t *cmdBody, uint32_t value, uint16_t *outCmd) {
-    uint16_t totalCmd[23];
-    uint16_t crc[2];
-
-    memcpy(totalCmd, _cmdStart, sizeof(_cmdStart));
-    memcpy(&totalCmd[7], cmdBody, sizeof(cmdBody));
-    for (size_t i = 11; i < 15; i++) {
-        totalCmd[i] = 0xFF;
-    }
-    // copy value MSB
-    for (size_t i = 0; i < 4; i++) {
-        totalCmd[i + 15] = (value >> (24 - (8 * i))) & 0xFF;
-    }
-    
-    memcpy(&totalCmd[15], &value, sizeof(value));
-    _GetCRC(&totalCmd[2], 17, crc);
-    memcpy(&totalCmd[19], crc, sizeof(crc));
-    memcpy(&totalCmd[21], _cmdEnd, sizeof(_cmdEnd));
-
-    memcpy(outCmd, totalCmd, sizeof(totalCmd));
 }
 
 NvMediaStatus
-SendCommand(uint32_t sensorAddress, uint16_t *cmd, uint32_t length) {
+SendCommand(uint32_t sensorAddress, uint16_t *cmd) {
     I2cHandle handle = NULL;
     NvMediaStatus status = NVMEDIA_STATUS_OK;
+    uint32_t cmdEndLength = sizeof(_cmdEnd) / sizeof(_cmdEnd[0]);
+    uint32_t i;
 
     // TODO: get I2C port from context 
     testutil_i2c_open(0, &handle);
@@ -144,9 +142,9 @@ SendCommand(uint32_t sensorAddress, uint16_t *cmd, uint32_t length) {
         return NVMEDIA_STATUS_ERROR;
     }
 
-    _EscapeCmd(cmd, &length);
-
-    for (size_t i = 0; i < length; i++) {
+    _EscapeCmd(cmd);
+    
+    for (i = 0; i < 64; i++) {
         uint8_t instruction[2] = {cmd[i] >> 8, cmd[i] & 0xFF};
 
         if(testutil_i2c_write_subaddr(handle, sensorAddress, 
@@ -159,10 +157,19 @@ SendCommand(uint32_t sensorAddress, uint16_t *cmd, uint32_t length) {
             status = NVMEDIA_STATUS_ERROR;
             break;
         }
+
+        if(cmd[i] == _cmdEnd[cmdEndLength-1]) {
+            break;
+        }
     }
 
+    if(i == 64) {
+        LOG_ERR("%s: No I2C termination character found", __func__);
+        status = NVMEDIA_STATUS_ERROR;
+    }    
+
     testutil_i2c_close(handle);
-    
+
     return status;
 }
 
@@ -205,14 +212,14 @@ ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
         status = NVMEDIA_STATUS_ERROR;
         goto finally;
     }
-    LsbToMsb32(&cmdStatus, &buffer[9]);
+    MsbToLsb32(&cmdStatus, &buffer[9]);
     if(cmdStatus) {
         LOG_ERR("%s: Error reading buffer - %d", __func__, cmdStatus);
         status = NVMEDIA_STATUS_ERROR;
         goto finally;
     }
 
-    LsbToMsb32(response, &buffer[13]);
+    MsbToLsb32(response, &buffer[13]);
     
 finally:
     testutil_i2c_close(handle);

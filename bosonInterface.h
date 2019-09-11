@@ -43,13 +43,10 @@ uint16_t CRC16_XMODEM_TABLE[256] = {
 };
 
 void
-CreateCommand(uint16_t *cmdBody, uint16_t *outCmd, uint32_t *length);
-
-void
-CreateParamCommand(uint16_t *cmdBody, uint32_t value, uint16_t *outCmd);
+BuildCommand(uint16_t *cmdBody, uint32_t value, uint16_t *outCmd);
 
 NvMediaStatus
-SendCommand(uint32_t sensorAddress, uint16_t *cmd, uint32_t length);
+SendCommand(uint32_t sensorAddress, uint16_t *cmd);
 
 NvMediaStatus
 ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response);

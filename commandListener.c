@@ -253,14 +253,14 @@ _ReceiveData(uint32_t sensorAddress, uint8_t reg, uint32_t *response) {
         status = NVMEDIA_STATUS_ERROR;
         goto finally;
     }
-    LsbToMsb32(&cmdStatus, &buffer[9]);
+    MsbToLsb32(&cmdStatus, &buffer[9]);
     if(cmdStatus) {
         LOG_ERR("%s: Error reading buffer - %d", __func__, cmdStatus);
         status = NVMEDIA_STATUS_ERROR;
         goto finally;
     }
 
-    LsbToMsb32(response, &buffer[13]);
+    MsbToLsb32(response, &buffer[13]);
     
 finally:
     testutil_i2c_close(handle);
