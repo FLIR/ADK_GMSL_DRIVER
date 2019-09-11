@@ -203,7 +203,13 @@ BuildCommand(uint16_t *cmdBody, uint32_t *value, uint16_t *outCmd) {
     cmdIdx += 4;
 
     if(value) {
-        LsbToMsbArr(&totalCmd[cmdIdx], *value);
+        uint8_t valBytes[4];
+
+        LsbToMsbArr(valBytes, *value);
+        for (size_t i = 0; i < 4; i++) {
+            totalCmd[cmdIdx+i] = valBytes[i];
+        }
+        
         cmdIdx += 4;
     }
 
@@ -225,6 +231,8 @@ SendCommand(uint32_t i2cDevice, uint32_t sensorAddress, uint16_t *cmd) {
     uint32_t cmdEndLength = sizeof(_cmdEnd) / sizeof(_cmdEnd[0]);
     uint32_t i;
 
+    uint16_t tempCmd[64];
+
     testutil_i2c_open(i2cDevice, &handle);
     if(!handle) {
         LOG_ERR("%s: Failed to open handle with id %u\n", __func__,
@@ -232,6 +240,7 @@ SendCommand(uint32_t i2cDevice, uint32_t sensorAddress, uint16_t *cmd) {
         return NVMEDIA_STATUS_ERROR;
     }
 
+    memcpy(tempCmd, cmd, 64 * sizeof(uint16_t));
     _EscapeCmd(cmd);
     
     for (i = 0; i < 64; i++) {

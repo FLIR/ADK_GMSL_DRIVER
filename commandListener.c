@@ -43,7 +43,11 @@ _BosonThreadFunc(void *data) {
                 char pn[32];
                 status = GetPartNumber(0, threadCtx->sensorAddress, pn);
                 printf("Part number: %s\n", pn);
-            }  else {
+            } else if(!strcasecmp(threadCtx->cmd, "mode")) {
+                status = GetFFCMode(0, threadCtx->sensorAddress, &response);
+                FFCModeToString(response, responseStr);
+                printf("FFC mode: %s\n", responseStr);
+            } else {
                 LOG_INFO("%s: Unsupported input", __func__);
             }
             if(status != NVMEDIA_STATUS_OK) {
