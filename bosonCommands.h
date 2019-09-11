@@ -55,4 +55,7 @@ NvMediaStatus
 GetTelemetryPacking(uint32_t i2cDevice, uint32_t sensorAddress,
     TelemetryPacking *packing);
 
+NvMediaStatus
+GetPartNumber(uint32_t i2cDevice, uint32_t sensorAddress, char *pn);
+
 #endif

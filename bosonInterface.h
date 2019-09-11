@@ -17,6 +17,11 @@ NvMediaStatus
 ReceiveData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg, 
     uint32_t *response);
 
+NvMediaStatus
+ReceiveStringData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg, 
+    char *response, uint32_t length);
+
+
 void
 ResetI2CBuffer(uint32_t i2cDevice, uint32_t sensorAddress);
 

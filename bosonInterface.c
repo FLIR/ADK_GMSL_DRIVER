@@ -129,6 +129,60 @@ finally:
     return status;
 }
 
+static NvMediaStatus
+_ReceiveHelper(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg, 
+    uint8_t *buffer)
+{
+    I2cHandle handle = NULL;
+    unsigned char respByte;
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
+    int startIdx = -1;
+    uint32_t cmdStatus;
+
+    testutil_i2c_open(i2cDevice, &handle);
+    if(!handle) {
+        LOG_ERR("%s: Failed to open handle with id %u\n", __func__,
+            sensorAddress);
+        status = NVMEDIA_STATUS_ERROR;
+        goto finally;
+    }
+
+    for (size_t i = 0; i < 64; i++)
+    {
+        testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
+            sizeof(char), &respByte, sizeof(char));
+        if(respByte == 0x8e) {
+            startIdx = i + 1;
+            continue;
+        }
+        if(respByte == 0xae) {
+            startIdx = -1;
+            break;
+        }
+        if(startIdx > -1) {
+            buffer[i - startIdx] = respByte;
+        }
+    }
+    // if there was never an end flag
+    if(startIdx != -1) {
+        LOG_ERR("%s: No termination character found", __func__);
+        status = NVMEDIA_STATUS_ERROR;
+        goto finally;
+    }
+    MsbToLsb32(&cmdStatus, &buffer[9]);
+    if(cmdStatus) {
+        LOG_ERR("%s: Error reading buffer - %d", __func__, cmdStatus);
+        status = NVMEDIA_STATUS_ERROR;
+        goto finally;
+    }
+
+finally:
+    testutil_i2c_close(handle);
+
+    return status;
+}
+
+
 void
 BuildCommand(uint16_t *cmdBody, uint32_t *value, uint16_t *outCmd) {
     // stop spooling, send start flag and arbitrary start data
@@ -213,54 +267,34 @@ NvMediaStatus
 ReceiveData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg, 
     uint32_t *response)
 {
-    I2cHandle handle = NULL;
-    unsigned char respByte;
     NvMediaStatus status = NVMEDIA_STATUS_OK;
-    int startIdx = -1;
-    uint32_t cmdStatus;
     uint8_t buffer[64];  
 
-    testutil_i2c_open(i2cDevice, &handle);
-    if(!handle) {
-        LOG_ERR("%s: Failed to open handle with id %u\n", __func__,
-            sensorAddress);
-        status = NVMEDIA_STATUS_ERROR;
-        goto finally;
-    }
-
-    for (size_t i = 0; i < 64; i++)
-    {
-        testutil_i2c_read_subaddr(handle, sensorAddress, &reg, 
-            sizeof(char), &respByte, sizeof(char));
-        if(respByte == 0x8e) {
-            startIdx = i + 1;
-            continue;
-        }
-        if(respByte == 0xae) {
-            startIdx = -1;
-            break;
-        }
-        if(startIdx > -1) {
-            buffer[i - startIdx] = respByte;
-        }
-    }
-    // if there was never an end flag
-    if(startIdx != -1) {
-        LOG_ERR("%s: No termination character found", __func__);
-        status = NVMEDIA_STATUS_ERROR;
-        goto finally;
-    }
-    MsbToLsb32(&cmdStatus, &buffer[9]);
-    if(cmdStatus) {
-        LOG_ERR("%s: Error reading buffer - %d", __func__, cmdStatus);
-        status = NVMEDIA_STATUS_ERROR;
-        goto finally;
+    status = _ReceiveHelper(i2cDevice, sensorAddress, reg, buffer);
+    if(status != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Error receiving data", __func__);
+        return status;
     }
 
     MsbToLsb32(response, &buffer[13]);
-    
-finally:
-    testutil_i2c_close(handle);
+
+    return status;
+}
+
+NvMediaStatus
+ReceiveStringData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg, 
+    char *response, uint32_t length)
+{
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
+    uint8_t buffer[64];  
+
+    status = _ReceiveHelper(i2cDevice, sensorAddress, reg, buffer);
+    if(status != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Error receiving data", __func__);
+        return status;
+    }
+
+    memcpy(response, &buffer[13], length * sizeof(char));
 
     return status;
 }

@@ -9,10 +9,10 @@
 static uint16_t _cmd[64];
 
 static NvMediaStatus
-_RunCommandWithResponse(uint32_t i2cDevice, uint32_t sensorAddress, 
-    uint16_t *cmdBody, uint32_t *resp)
+_RunCommandWithResponseHelper(int32_t i2cDevice, uint32_t sensorAddress, 
+    uint16_t *cmdBody)
 {
-    NvMediaStatus status;
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
 
     BuildCommand(cmdBody, NULL, _cmd);
     ResetI2CBuffer(i2cDevice, sensorAddress);
@@ -24,13 +24,43 @@ _RunCommandWithResponse(uint32_t i2cDevice, uint32_t sensorAddress,
     }
 
     nvsleep(1000);
+    return status;
+}
+
+static NvMediaStatus
+_RunCommandWithInt32Response(uint32_t i2cDevice, uint32_t sensorAddress, 
+    uint16_t *cmdBody, uint32_t *resp)
+{
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
+
+    status = _RunCommandWithResponseHelper(i2cDevice, sensorAddress, cmdBody);
+    if(status != NVMEDIA_STATUS_OK) {
+        return;
+    }
     status = ReceiveData(i2cDevice, sensorAddress, 0, resp);
     if(status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Error receiving data", __func__);
     }
 
     return status;
+}
 
+static NvMediaStatus
+_RunCommandWithStringResponse(uint32_t i2cDevice, uint32_t sensorAddress, 
+    uint16_t *cmdBody, char *resp, uint32_t length)
+{
+    NvMediaStatus status = NVMEDIA_STATUS_OK;
+
+    status = _RunCommandWithResponseHelper(i2cDevice, sensorAddress, cmdBody);
+    if(status != NVMEDIA_STATUS_OK) {
+        return;
+    }
+    status = ReceiveStringData(i2cDevice, sensorAddress, 0, resp, length);
+    if(status != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Error receiving data", __func__);
+    }
+
+    return status;
 }
 
 void
@@ -89,7 +119,7 @@ GetSerialNumber(uint32_t i2cDevice, uint32_t sensorAddress, uint32_t *sn) {
     NvMediaStatus status;
     uint16_t cmdBody[4] = {0x00, 0x05, 0x00, 0x02};
 
-    status = _RunCommandWithResponse(i2cDevice, sensorAddress, cmdBody, sn);
+    status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody, sn);
     if(status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Error running response command", __func__);
     }
@@ -119,7 +149,7 @@ GetFFCMode(uint32_t i2cDevice, uint32_t sensorAddress, FFCMode *mode) {
     uint16_t cmdBody[4] = {0x00, 0x05, 0x00, 0x13};
     uint32_t modeInt = (uint32_t)*mode;
     
-    status = _RunCommandWithResponse(i2cDevice, sensorAddress, cmdBody, &modeInt);
+    status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody, &modeInt);
     if(status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Error running response command", __func__);
     }
@@ -134,7 +164,7 @@ GetColorMode(uint32_t i2cDevice, uint32_t sensorAddress, BosonColor *color) {
     uint16_t cmdBody[4] = {0x00, 0x0B, 0x00, 0x04};
     uint32_t colorInt = (uint32_t)*color;
 
-    status = _RunCommandWithResponse(i2cDevice, sensorAddress, cmdBody, &colorInt);
+    status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody, &colorInt);
     if(status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Error running response command", __func__);
     }
@@ -151,11 +181,26 @@ GetTelemetryPacking(uint32_t i2cDevice, uint32_t sensorAddress,
     uint16_t cmdBody[4] = {0x00, 0x04, 0x00, 0x06};
     uint32_t packingInt = (uint32_t)*packing;
 
-    status = _RunCommandWithResponse(i2cDevice, sensorAddress, cmdBody, &packingInt);
+    status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, 
+        cmdBody, &packingInt);
     if(status != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Error running response command", __func__);
     }
     *packing = (TelemetryPacking)packingInt;
+
+    return status;
+}
+
+NvMediaStatus
+GetPartNumber(uint32_t i2cDevice, uint32_t sensorAddress, char *pn) {
+    NvMediaStatus status;
+    uint16_t cmdBody[4] = {0x00, 0x05, 0x00, 0x3F};
+
+    status = _RunCommandWithStringResponse(i2cDevice, sensorAddress, 
+        cmdBody, pn, 32);
+    if(status != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Error running response command", __func__);
+    }
 
     return status;
 }

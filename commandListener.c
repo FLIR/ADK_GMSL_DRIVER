@@ -39,7 +39,11 @@ _BosonThreadFunc(void *data) {
                 status = GetColorMode(0, threadCtx->sensorAddress, &response);
                 ColorToString(response, responseStr);
                 printf("Color mode: %s\n", responseStr);
-            } else {
+            } else if(!strcasecmp(threadCtx->cmd, "pn")) {
+                char pn[32];
+                status = GetPartNumber(0, threadCtx->sensorAddress, pn);
+                printf("Part number: %s\n", pn);
+            }  else {
                 LOG_INFO("%s: Unsupported input", __func__);
             }
             if(status != NVMEDIA_STATUS_OK) {
