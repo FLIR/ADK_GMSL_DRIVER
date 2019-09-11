@@ -18,6 +18,7 @@ OBJS   := main.o
 OBJS   += capture.o
 OBJS   += commandListener.o
 OBJS   += bosonInterface.o
+OBJS   += bosonCommands.o
 OBJS   += check_version.o
 OBJS   += cmdline.o
 OBJS   += helpers.o

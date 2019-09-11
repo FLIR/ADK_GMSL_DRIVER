@@ -24,8 +24,20 @@ typedef enum {
     PACKING_END
 } TelemetryPacking;
 
+void
+PackingToString(uint32_t val, char *outStr);
+
+void
+FFCModeToString(uint32_t val, char *outStr);
+
+void
+ColorToString(uint32_t val, char *outStr);
+
 NvMediaStatus
 TriggerShutter(uint32_t i2cDevice, uint32_t sensorAddress);
+
+NvMediaStatus
+GetSerialNumber(uint32_t i2cDevice, uint32_t sensorAddress, uint32_t *sn);
 
 NvMediaStatus
 SetColors(uint32_t i2cDevice, uint32_t sensorAddress, BosonColor color);
