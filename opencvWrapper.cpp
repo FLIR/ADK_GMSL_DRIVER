@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "opencvWrapper.h"
 
 OpencvWrapper::OpencvWrapper() {
@@ -43,13 +45,14 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytes
         img = cv::Mat(height, width, pixelType, 
             reinterpret_cast<void *>(imgBuffer));
     }
-    for (size_t i = 0; i < width * height * bytesPerPixel; i+=bytesPerPixel) {
-        for (size_t j = 0; j < bytesPerPixel; j++) {
-            imgBuffer[i+j] = data[i + (bytesPerPixel - j - 1)];
-        }
-    }
-    
-    agc();
+    memcpy(imgBuffer, data, width * height * bytesPerPixel);
+
+    // TODO: issue possibly due to clipping 16-bit values 
+    // output image bytes and view in Python to confirm
+    // std::ofstream outfile ("cvimg.out",std::ofstream::binary); 
+    // outfile.write((char *)data, height * width * bytesPerPixel);
+    // outfile.close();
+    // agc();
 }
 
 void OpencvWrapper::startRecording(int fps, std::string filename) {

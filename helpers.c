@@ -83,19 +83,15 @@ ImageToBytes(NvMediaImage *imgSrc,
     NvMediaImageUnlock(imgSrc);
 
     // skip the first row (telemetry line)
-    // memcpy(dstBuffer, &pSrcBuff[srcPitch], 
-    //     srcPitch * (srcHeight - 1) * sizeof(uint8_t));
-    memcpy(dstBuffer, &pSrcBuff[0], 
+    memcpy(dstBuffer, &pSrcBuff[srcPitch], 
         srcPitch * (srcHeight - 1) * sizeof(uint8_t));
 
     // get telemetry data
     memcpy(telemetry, pSrcBuff, srcPitch * sizeof(uint8_t));
 
-    FILE *fp = fopen("telemetry.txt", "w");
-    for (size_t i = 0; i < srcPitch; i++) {
-        fprintf(fp, "%02x", telemetry[i]);
-    }
-    fclose(fp);    
+    // FILE *fp = fopen("img.out", "w");
+    // fwrite(dstBuffer, srcPitch * (srcHeight - 1), sizeof(uint8_t), fp);
+    // fclose(fp);    
 
     if(pSrcBuff)
         free(pSrcBuff);

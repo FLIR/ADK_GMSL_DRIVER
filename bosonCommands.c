@@ -77,8 +77,24 @@ PackingToString(uint32_t val, char *outStr) {
         strcpy(outStr, "8 Bit");
         return;
     }
-    if(val == PACKING_END) {
-        strcpy(outStr, "End");
+}
+
+void
+VideoTypeToString(uint32_t val, char *outStr) {
+    if(val == VIDEO_MONO16) {
+        strcpy(outStr, "Mono 16");
+        return;
+    }
+    if(val == VIDEO_MONO8) {
+        strcpy(outStr, "Mono 8");
+        return;
+    }
+    if(val == VIDEO_COLOR) {
+        strcpy(outStr, "Color");
+        return;
+    }
+    if(val == VIDEO_ANALOG) {
+        strcpy(outStr, "Analog");
         return;
     }
 }
@@ -203,4 +219,28 @@ GetPartNumber(uint32_t i2cDevice, uint32_t sensorAddress, char *pn) {
     }
 
     return status;
+}
+
+NvMediaStatus
+GetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType *vidType) {
+    NvMediaStatus status;
+    uint16_t cmdBody[4] = {0x00, 0x04, 0x00, 0x06};
+    uint32_t vidInt = (uint32_t)*vidType;
+
+    status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, 
+        cmdBody, &vidInt);
+    if(status != NVMEDIA_STATUS_OK) {
+        LOG_ERR("%s: Error running response command", __func__);
+    }
+    *vidType = (VideoType)vidInt;
+
+    return status;
+}
+
+NvMediaStatus
+SetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType vidType) {
+    uint32_t param = (uint32_t)vidType;
+    uint16_t cmdBody[4] = {0x00, 0x06, 0x00, 0x0F};
+    BuildCommand(cmdBody, &param, _cmd);
+    return SendCommand(i2cDevice, sensorAddress, _cmd);
 }

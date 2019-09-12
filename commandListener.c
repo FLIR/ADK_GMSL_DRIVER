@@ -47,6 +47,16 @@ _BosonThreadFunc(void *data) {
                 status = GetFFCMode(0, threadCtx->sensorAddress, &response);
                 FFCModeToString(response, responseStr);
                 printf("FFC mode: %s\n", responseStr);
+            } else if(!strcasecmp(threadCtx->cmd, "video")) {
+                status = GetVideoType(0, threadCtx->sensorAddress, &response);
+                VideoTypeToString(response, responseStr);
+                printf("Video type: %s\n", responseStr);
+            } else if(!strcasecmp(threadCtx->cmd, "v8")) {
+                status = SetVideoType(0, threadCtx->sensorAddress, VIDEO_MONO8);
+            } else if(!strcasecmp(threadCtx->cmd, "v16")) {
+                status = SetVideoType(0, threadCtx->sensorAddress, VIDEO_MONO16);
+            } else if(!strcasecmp(threadCtx->cmd, "vc")) {
+                status = SetVideoType(0, threadCtx->sensorAddress, VIDEO_COLOR);
             } else {
                 LOG_INFO("%s: Unsupported input", __func__);
             }

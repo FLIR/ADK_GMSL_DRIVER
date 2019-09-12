@@ -424,8 +424,8 @@ _CaptureThreadFunc(void *data)
             goto done;
         }
 
-        Opencv_sendFrame(imgData, capturedImage->width, capturedImage->height,
-            threadCtx->rawBytesPerPixel);
+        Opencv_sendFrame(imgData, capturedImage->width, 
+            capturedImage->height - 1, threadCtx->rawBytesPerPixel);
         Opencv_sendTelemetry(telemetry, 
             capturedImage->width * threadCtx->rawBytesPerPixel);
 
@@ -607,7 +607,6 @@ CaptureInit(NvMainContext *mainCtx)
     LOG_DBG("%s: Creating ICP context\n", __func__);
 
     /* Create NvMediaICPEx object */
-    // ANIL: causes errors if I remove windowID (and I assume other fields from TestArgs)
     captureCtx->icpExCtx = NvMediaICPCreateEx(&captureCtx->icpSettingsEx);
     if (!captureCtx->icpExCtx) {
         LOG_ERR("%s: NvMediaICPCreateEx failed\n", __func__);

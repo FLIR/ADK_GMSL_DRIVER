@@ -84,6 +84,21 @@ _EscapeCmd(uint16_t *cmd) {
 }
 
 static void
+_UnescapeResponse(uint8_t *resp, uint32_t length) {
+    uint8_t tempResp[length];
+    uint32_t ei = 0;
+    for (size_t i = 0; i < length; i++) {
+        if(resp[i+ei] == _escapeChar) {
+            ei++;
+            resp[i+ei] += 0xD;
+        }
+
+        tempResp[i] = resp[i+ei];
+    }
+    memcpy(resp, tempResp, length * sizeof(uint8_t));
+}
+
+static void
 _GetCRC(uint16_t *data, uint32_t length, uint16_t *outCrc) {
     uint16_t crc = 0x1d0f;
     uint8_t byte;
@@ -285,6 +300,7 @@ ReceiveData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg,
         return status;
     }
 
+    _UnescapeResponse(&buffer[13], 4);
     MsbToLsb32(response, &buffer[13]);
 
     return status;
@@ -303,6 +319,7 @@ ReceiveStringData(uint32_t i2cDevice, uint32_t sensorAddress, uint8_t reg,
         return status;
     }
 
+    _UnescapeResponse(&buffer[13], length);
     memcpy(response, &buffer[13], length * sizeof(char));
 
     return status;

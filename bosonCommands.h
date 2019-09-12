@@ -24,6 +24,14 @@ typedef enum {
     PACKING_END
 } TelemetryPacking;
 
+typedef enum {
+    VIDEO_MONO16 = 0,
+    VIDEO_MONO8,
+    VIDEO_COLOR,
+    VIDEO_ANALOG,
+    VIDEO_END
+} VideoType;
+
 void
 PackingToString(uint32_t val, char *outStr);
 
@@ -57,5 +65,11 @@ GetTelemetryPacking(uint32_t i2cDevice, uint32_t sensorAddress,
 
 NvMediaStatus
 GetPartNumber(uint32_t i2cDevice, uint32_t sensorAddress, char *pn);
+
+NvMediaStatus
+GetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType *vidType);
+
+NvMediaStatus
+SetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType vidType);
 
 #endif
