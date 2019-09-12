@@ -82,7 +82,8 @@ ExecuteNextCommand(NvMainContext *ctx) {
 
     return 0;
 }
-int main(int argc,
+
+int Run(int argc,
          char *argv[])
 {
     TestArgs allArgs;
@@ -115,7 +116,7 @@ int main(int argc,
     }
 
     memset(&allArgs, 0, sizeof(TestArgs));
-    memset(&mainCtx, 0 , sizeof(NvMainContext));
+    memset(&mainCtx, 0, sizeof(NvMainContext));
     mainCtx.cmd = malloc(256);
 
     if (CheckModulesVersion() != NVMEDIA_STATUS_OK) {

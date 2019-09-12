@@ -28,5 +28,7 @@ typedef struct {
     char                        *cmd;
 } NvMainContext;
 
+int Run(int argc, char **argv);
+
 #endif
 

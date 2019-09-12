@@ -10,11 +10,12 @@ include ../make/nvdefs.mk
 
 TARGETS = nvmimg_cc
 
-CFLAGS   = $(NV_PLATFORM_OPT) $(NV_PLATFORM_CFLAGS) -I. -I../utils
-CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -ggdb
+CFLAGS   = $(NV_PLATFORM_OPT) $(NV_PLATFORM_CFLAGS)
+CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -ggdb -I. -I../utils
 LDFLAGS  = $(NV_PLATFORM_SDK_LIB) $(NV_PLATFORM_TARGET_LIB) $(NV_PLATFORM_LDFLAGS)
 
 OBJS   := main.o
+OBJS   += nvidiaInterface.o
 OBJS   += capture.o
 OBJS   += commandListener.o
 OBJS   += bosonInterface.o
