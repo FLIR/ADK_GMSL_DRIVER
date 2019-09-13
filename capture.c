@@ -14,44 +14,6 @@
 #include "opencvConnector.h"
 
 static NvMediaStatus
-_DetermineCaptureStatus(NvMediaBool *captureFlag,
-                        uint32_t frameNumber,
-                        uint32_t numFramesToSkip,
-                        uint32_t numFramesToWait,
-                        uint32_t numMiniburstFrames)
-{
-    uint32_t offsetFrameNumber;
-    uint32_t i;
-
-    if (!captureFlag)
-        return NVMEDIA_STATUS_BAD_PARAMETER;
-
-    /* Frames in the beginning need to be skipped */
-    if (frameNumber < numFramesToSkip) {
-        *captureFlag = NVMEDIA_FALSE;
-        return NVMEDIA_STATUS_OK;
-    }
-
-    /* Always capture frames if frame wait is 0 */
-    if (!numFramesToWait) {
-        *captureFlag = NVMEDIA_TRUE;
-        return NVMEDIA_STATUS_OK;
-    }
-
-    offsetFrameNumber = frameNumber - numFramesToSkip;
-    i = offsetFrameNumber % (numMiniburstFrames + numFramesToWait);
-
-    /* Capturing mini burst frames */
-    if (i < numMiniburstFrames)
-        *captureFlag = NVMEDIA_TRUE;
-    /* Waiting for frames to be captured */
-    else
-        *captureFlag = NVMEDIA_FALSE;
-
-    return NVMEDIA_STATUS_OK;
-}
-
-static NvMediaStatus
 _WriteCommandsToFile(FILE *fp,
                      I2cCommands *allCommands)
 {
@@ -279,8 +241,7 @@ _SetICPSettings(CaptureThreadCtx *ctx,
     /* Set NvMediaICPSettings */
     icpSettings->interfaceType = interfaceType;
     memcpy(&icpSettings->inputFormat, &ctx->inputFormat, sizeof(NvMediaICPInputFormat));
-    icpSettings->width = (testArgs->useVirtualChannels)?
-                          width : width * testArgs->numSensors;
+    icpSettings->width = width;
 
     icpSettings->height = height;
     icpSettings->startX = 0;
@@ -314,7 +275,6 @@ _CaptureThreadFunc(void *data)
 {
     CaptureThreadCtx *threadCtx = (CaptureThreadCtx *)data;
     uint32_t i = 0, totalCapturedFrames = 0, lastCapturedFrame = 0;
-    NvMediaBool startCapture = NVMEDIA_FALSE;
     NvMediaImage *capturedImage = NULL;
     NvMediaImage *feedImage = NULL;
     NvMediaStatus status;
@@ -337,20 +297,8 @@ _CaptureThreadFunc(void *data)
     }
 
     while (!(*threadCtx->quit)) {
-        status = _DetermineCaptureStatus(&startCapture,
-                                         i,
-                                         threadCtx->numFramesToSkip,
-                                         threadCtx->numFramesToWait,
-                                         threadCtx->numMiniburstFrames);
-        if (status != NVMEDIA_STATUS_OK) {
-            LOG_ERR("%s: CaptureDetermineStatus failed\n", __func__);
-            *threadCtx->quit = NVMEDIA_TRUE;
-            goto done;
-        }
 
-        /* Set current frame to be an offset by frames to skip */
-        if (startCapture)
-            threadCtx->currentFrame = i - threadCtx->numFramesToSkip;
+        threadCtx->currentFrame = i;
 
         /* Feed all images to image capture object from the input Queue */
         while (NvQueueGet(threadCtx->inputQueue,
@@ -441,28 +389,16 @@ _CaptureThreadFunc(void *data)
                      threadCtx->virtualGroupIndex, threadCtx->fps, td);
         }
 
-        /* push the captured image onto output queue */
-        if (startCapture) {
-            status = NvQueuePut(threadCtx->outputQueue,
-                                (void *)&capturedImage,
-                                CAPTURE_ENQUEUE_TIMEOUT);
-            if (status != NVMEDIA_STATUS_OK) {
-                LOG_INFO("%s: Failed to put image onto capture output queue", __func__);
-                goto done;
-            }
-
-            totalCapturedFrames++;
-        } else {
-            status = NvQueuePut((NvQueue *)capturedImage->tag,
-                                (void *)&capturedImage,
-                                0);
-            if (status != NVMEDIA_STATUS_OK) {
-                LOG_ERR("%s: Failed to put image back into capture input queue", __func__);
-                *threadCtx->quit = NVMEDIA_TRUE;
-                goto done;
-            }
-
+        status = NvQueuePut(threadCtx->outputQueue,
+                            (void *)&capturedImage,
+                            CAPTURE_ENQUEUE_TIMEOUT);
+        if (status != NVMEDIA_STATUS_OK) {
+            LOG_INFO("%s: Failed to put image onto capture output queue", __func__);
+            goto done;
         }
+
+        totalCapturedFrames++;
+
         capturedImage = NULL;
 done:
         if (capturedImage) {
@@ -478,7 +414,7 @@ done:
         i++;
 
         /* To stop capturing if specified number of frames are captured */
-        if (threadCtx->numFramesToCapture && startCapture &&
+        if (threadCtx->numFramesToCapture &&
            (totalCapturedFrames == threadCtx->numFramesToCapture))
             break;
     }
@@ -632,9 +568,6 @@ CaptureInit(NvMainContext *mainCtx)
         captureCtx->threadCtx[i].virtualGroupIndex = i;
         captureCtx->threadCtx[i].numFramesToCapture = (testArgs->frames.isUsed)?
                                                        testArgs->frames.uIntValue : 0;
-        captureCtx->threadCtx[i].numFramesToSkip = testArgs->numFramesToSkip;
-        captureCtx->threadCtx[i].numFramesToWait = testArgs->numFramesToWait;
-        captureCtx->threadCtx[i].numMiniburstFrames = 1;
         captureCtx->threadCtx[i].width  = NVMEDIA_ICP_SETTINGS_HANDLER(captureCtx->icpSettingsEx, i, 0)->width;
         captureCtx->threadCtx[i].height = NVMEDIA_ICP_SETTINGS_HANDLER(captureCtx->icpSettingsEx, i, 0)->height;
         captureCtx->threadCtx[i].settings = NVMEDIA_ICP_SETTINGS_HANDLER(captureCtx->icpSettingsEx, i, 0);

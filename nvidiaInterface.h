@@ -33,13 +33,13 @@ class NvidiaInterface {
         NvidiaInterface();
         ~NvidiaInterface();
         void run(int argc, char **argv);
-        void ffc();
-        uint32_t getSerialNumber();
-        void setColors(PaletteColor color);
-        PaletteColor getSceneColor();
-        void setFfcMode(FFCMode mode);
-        FFCMode getFfcMode();
-        std::string getPartNumber();
+        // void ffc();
+        // uint32_t getSerialNumber();
+        // void setColors(PaletteColor color);
+        // PaletteColor getSceneColor();
+        // void setFfcMode(FFCMode mode);
+        // FFCMode getFfcMode();
+        // std::string getPartNumber();
     private:
         bool isRunning = false;
 };

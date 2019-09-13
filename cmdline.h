@@ -63,18 +63,12 @@ typedef struct {
     NvMediaBool                 displayEnabled;
     NvMediaBool                 displayIdUsed;
     uint32_t                    displayId;
-    NvMediaBool                 positionSpecifiedFlag;
-    NvMediaRect                 position;
     NvMediaBool                 useFilePrefix;
     char                        filePrefix[MAX_STRING_SIZE];
-    uint32_t                    numFramesToSkip;
-    uint32_t                    numFramesToWait;
-    uint32_t                    numMiniburstFrames;
     uint32_t                    bufferPoolSize;
     uint32_t                    numSensors;
     uint32_t                    numLinks;
     uint32_t                    numVirtualChannels;
-    NvMediaBool                 useVirtualChannels;
     CmdlineParameter            config[NVMEDIA_ICP_MAX_VIRTUAL_CHANNELS];
 } TestArgs;
 

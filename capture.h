@@ -42,10 +42,7 @@ typedef struct {
     uint32_t                    height;
     uint32_t                    virtualGroupIndex;
     uint32_t                    currentFrame;
-    uint32_t                    numFramesToSkip;
     uint32_t                    numFramesToCapture;
-    uint32_t                    numFramesToWait;
-    uint32_t                    numMiniburstFrames;
     uint32_t                    numBuffers;
 
     /* input and surface params */

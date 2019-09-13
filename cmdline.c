@@ -37,21 +37,10 @@ PrintUsage(void)
 
     LOG_MSG("-n [frames]       Number of frames to Capture.\n");
     LOG_MSG("-f [file-prefix]  Save raw files. Provide pre-fix for each file to save\n");
-    LOG_MSG("-z [n]            Set display window depth [0-255]\n");
-    LOG_MSG("-p [position]     Window position. Default: full screen size\n");
-    LOG_MSG("-s [n]            Set frame number to start capturing images\n");
     LOG_MSG("-b [n]            Set buffer pool size\n");
     LOG_MSG("                  Default: %d Maximum: %d\n",MIN_BUFFER_POOL_SIZE,NVMEDIA_MAX_CAPTURE_FRAME_BUFFERS);
     LOG_MSG("-wrregs [file]    File name of register script to write to sensor\n");
     LOG_MSG("-rdregs [file]    File name of register dump from sensor\n");
-    LOG_MSG("--vc_enable       Enable virtual channels for capturing the frames\n");
-    LOG_MSG("                  VCs are always enabled. This option will be deprecated\n");
-    LOG_MSG("--crystalF [MHz]  Crystal Frequency in MHz.\n");
-    LOG_MSG("                  Default = 24 MHz\n");
-    LOG_MSG("--wait [n]        Wait for n frames before capturing the next frame(s)\n");
-    LOG_MSG("--miniburst [n]   Capture n frames between wait periods.\n");
-    LOG_MSG("                  Default = 1\n");
-    LOG_MSG("                  Valid only when --wait is used\n");
     LOG_MSG("\nValid Script File Commands:\n");
     LOG_MSG("; Delay [n](ms|us)         Delay between register writes in ms/us\n");
     LOG_MSG("; I2C [channel]            Open I2C channel for writing registers\n");
@@ -60,7 +49,6 @@ PrintUsage(void)
     LOG_MSG("                           Mandatory if Wait for frame has been used\n");
     LOG_MSG("# [comment]                Symbol for using comments in the script file\n");
     LOG_MSG("\nSensor Calibration Commands:\n");
-    LOG_MSG(" To get specific sensor calibration commads, please specify '-sensor [name] -h'\n");
     LOG_MSG(" To get log info about sensor calibration actual setting, please specify '-v 2'\n");
 }
 
@@ -83,7 +71,6 @@ ParseArgs(int argc,
     allArgs->numLinks = 0;
     allArgs->numVirtualChannels = 1;
     allArgs->bufferPoolSize = MIN_BUFFER_POOL_SIZE;
-    allArgs->useVirtualChannels = NVMEDIA_TRUE;
 
     if (argc < 2) {
         PrintUsage();
@@ -132,9 +119,6 @@ ParseArgs(int argc,
             if (!strcasecmp(argv[i], "-v")) {
                 if (bDataAvailable)
                     i++;
-            } else if (!strcasecmp(argv[i], "-sensor")) {
-                if (bDataAvailable)
-                    i++;
             } else if (!strcasecmp(argv[i], "-h")) {
                 if (bDataAvailable)
                     i++;
@@ -180,32 +164,6 @@ ParseArgs(int argc,
                     }
                 }
                 allArgs->displayEnabled = NVMEDIA_TRUE;
-            } else if (!strcasecmp(argv[i], "-p")) {
-                if (bDataAvailable) {
-                    if ((sscanf(argv[++i], "%u:%u:%u:%u", &x, &y, &w, &h)
-                       != 4)) {
-                        LOG_ERR("Bad resolution: %s\n", argv[i]);
-                        return NVMEDIA_STATUS_BAD_PARAMETER;
-                    }
-                    allArgs->position.x0 = x;
-                    allArgs->position.y0 = y;
-                    allArgs->position.x1 = x + w;
-                    allArgs->position.y1 = y + h;
-                    allArgs->positionSpecifiedFlag = NVMEDIA_TRUE;
-                    LOG_INFO("Output position set to: %u:%u:%u:%u\n",
-                             x, y, x + w, y + h);
-                } else {
-                    LOG_ERR("-p must be followed by window position x0:x1:W:H\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
-            } else if (!strcasecmp(argv[i], "-s")) {
-                if (bDataAvailable) {
-                    char *arg = argv[++i];
-                    allArgs->numFramesToSkip = atoi(arg);
-                } else {
-                    LOG_ERR("-s must be followed by frame number at which capture starts\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
             } else if (!strcasecmp(argv[i], "-b")) {
                 if (bDataAvailable) {
                     char *arg = argv[++i];
@@ -223,24 +181,6 @@ ParseArgs(int argc,
                     LOG_ERR("-b must be followed by buffer pool size\n");
                     return NVMEDIA_STATUS_ERROR;
                 }
-            } else if (!strcasecmp(argv[i], "--wait")) {
-                if (bDataAvailable) {
-                    char *arg = argv[++i];
-                    allArgs->numFramesToWait= atoi(arg);
-                } else {
-                    LOG_ERR("--wait must be followed by number of frames to wait in between capture\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
-            } else if (!strcasecmp(argv[i], "--miniburst")) {
-                if (bDataAvailable) {
-                    char *arg = argv[++i];
-                    allArgs->numMiniburstFrames= atoi(arg);
-                } else {
-                    LOG_ERR("--miniburst must be followed by number of frames to capture after a wait period\n");
-                    return NVMEDIA_STATUS_ERROR;
-                }
-            } else if (!strcasecmp(argv[i], "--vc_enable")) {
-                allArgs->useVirtualChannels= NVMEDIA_TRUE;
             } else if (!strcasecmp(argv[i], "--settings")) {
                 if (argv[i + 1] && argv[i + 1][0] != '-') {
                     allArgs->rtSettings.isUsed = NVMEDIA_TRUE;
@@ -277,22 +217,11 @@ ParseArgs(int argc,
 
     // Set the same capture set for all virtual channels
     // TBD: Add unique capture set for each vc once there is hw support
-    if (allArgs->useVirtualChannels) {
-        allArgs->numVirtualChannels = allArgs->numSensors;
-        for (j = 0; j < allArgs->numSensors; j++) {
-            allArgs->config[j].isUsed = NVMEDIA_TRUE;
-            allArgs->config[j].uIntValue = allArgs->config[0].uIntValue;
-        }
+    allArgs->numVirtualChannels = allArgs->numSensors;
+    for (j = 0; j < allArgs->numSensors; j++) {
+        allArgs->config[j].isUsed = NVMEDIA_TRUE;
+        allArgs->config[j].uIntValue = allArgs->config[0].uIntValue;
     }
-
-    if (allArgs->numMiniburstFrames && !allArgs->numFramesToWait) {
-        LOG_ERR("--miniburst cannot be used without --wait option\n");
-        return NVMEDIA_STATUS_ERROR;
-    }
-
-    // Set to default of 1 to capture every frame
-    if (!allArgs->numMiniburstFrames)
-        allArgs->numMiniburstFrames = 1;
 
     return NVMEDIA_STATUS_OK;
 }
