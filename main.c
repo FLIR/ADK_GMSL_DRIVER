@@ -83,10 +83,8 @@ ExecuteNextCommand(NvMainContext *ctx) {
     return 0;
 }
 
-int Run(int argc,
-         char *argv[])
+int Run(TestArgs *allArgs)
 {
-    TestArgs allArgs;
     NvMainContext mainCtx;
     sigset_t set;
     int status;
@@ -115,15 +113,10 @@ int Run(int argc,
         return -1;
     }
 
-    memset(&allArgs, 0, sizeof(TestArgs));
     memset(&mainCtx, 0, sizeof(NvMainContext));
     mainCtx.cmd = malloc(256);
 
     if (CheckModulesVersion() != NVMEDIA_STATUS_OK) {
-        return -1;
-    }
-
-    if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
         return -1;
     }
 
@@ -133,7 +126,7 @@ int Run(int argc,
     SigSetup();
 
     /* Initialize context */
-    mainCtx.testArgs = &allArgs;
+    mainCtx.testArgs = allArgs;
 
     /* Initialize all the components */
     if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
@@ -185,7 +178,7 @@ int Run(int argc,
 //     }
 
     while (!mainCtx.quit) {
-        if (!allArgs.frames.isUsed) {
+        if (!allArgs->frames.isUsed) {
             ExecuteNextCommand(&mainCtx);
         }
     }

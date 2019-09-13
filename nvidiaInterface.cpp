@@ -1,19 +1,24 @@
 #include "nvidiaInterface.h"
 
 extern "C" {
+    #include "cmdline.h"
     #include "main.h"
 }
 
 NvidiaInterface::NvidiaInterface() {}
 NvidiaInterface::~NvidiaInterface() {}
-void NvidiaInterface::run(int argc, char **argv) {
-    Run(argc, argv);
+void NvidiaInterface::run(TestArgs *args) {
+    Run(args);
 }
 
 int main(int argc, char **argv) {
-    NvidiaInterface foo;
+    NvidiaInterface interface;
+    TestArgs allArgs;
 
-    std::cout << "C++!" << std::endl;
+    memset(&allArgs, 0, sizeof(TestArgs));
+    if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
+        return -1;
+    }
     
-    foo.run(argc, argv);
+    interface.run(&allArgs);
 }

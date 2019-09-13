@@ -2,6 +2,11 @@
 #define NVIDIA_INTERFACE_H
 
 #include <iostream>
+#include <cstdint>
+
+extern "C" {
+    #include "cmdline.h"    
+}
 
 typedef enum {
     WHITE_HOT = 0,
@@ -32,7 +37,7 @@ class NvidiaInterface {
     public:
         NvidiaInterface();
         ~NvidiaInterface();
-        void run(int argc, char **argv);
+        void run(TestArgs *args);
         // void ffc();
         // uint32_t getSerialNumber();
         // void setColors(PaletteColor color);
