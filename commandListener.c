@@ -7,6 +7,7 @@
 
 #include "capture.h"
 #include "bosonCommands.h"
+#include "helpers.h"
 #include "commandListener.h"
 
 static uint32_t
@@ -57,6 +58,23 @@ _BosonThreadFunc(void *data) {
                 status = SetVideoType(0, threadCtx->sensorAddress, VIDEO_MONO16);
             } else if(!strcasecmp(threadCtx->cmd, "vc")) {
                 status = SetVideoType(0, threadCtx->sensorAddress, VIDEO_COLOR);
+            } else if(!strncmp(threadCtx->cmd, "geti", 4)) {
+                char *inputs[4];
+                SplitString(inputs, threadCtx->cmd, " ");
+                status = GetIntValue(0, threadCtx->sensorAddress, inputs[1],
+                    &response);
+                printf("%d\n", response);
+            } else if(!strncmp(threadCtx->cmd, "gets", 4)) {
+                char *inputs[4];
+                SplitString(inputs, threadCtx->cmd, " ");
+                status = GetStringValue(0, threadCtx->sensorAddress, inputs[1],
+                    &responseStr);
+                printf("%s\n", responseStr);
+            } else if(!strncmp(threadCtx->cmd, "seti", 4)) {
+                char *inputs[4];
+                SplitString(inputs, threadCtx->cmd, " ");
+                status = SetIntValue(0, threadCtx->sensorAddress, inputs[1],
+                    inputs[2]);
             } else {
                 LOG_INFO("%s: Unsupported input", __func__);
             }

@@ -4,6 +4,7 @@
 #include "log_utils.h"
 #include "opencvConnector.h"
 #include "bosonInterface.h"
+#include "helpers.h"
 #include "bosonCommands.h"
 
 static uint16_t _cmd[64];
@@ -61,6 +62,16 @@ _RunCommandWithStringResponse(uint32_t i2cDevice, uint32_t sensorAddress,
     }
 
     return status;
+}
+
+static void
+_StringToCommand(uint16_t *cmdBody, char *cmdStr) {
+    uint8_t tempCmd[4];
+    uint32_t cmdNum = (uint32_t)strtoul(cmdStr, NULL, 16);
+    LsbToMsbArr(tempCmd, cmdNum);
+    for (size_t i = 0; i < 4; i++) {
+        cmdBody[i] = tempCmd[i];
+    }
 }
 
 void
@@ -224,7 +235,7 @@ GetPartNumber(uint32_t i2cDevice, uint32_t sensorAddress, char *pn) {
 NvMediaStatus
 GetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType *vidType) {
     NvMediaStatus status;
-    uint16_t cmdBody[4] = {0x00, 0x04, 0x00, 0x06};
+    uint16_t cmdBody[4] = {0x00, 0x06, 0x00, 0x10};
     uint32_t vidInt = (uint32_t)*vidType;
 
     status = _RunCommandWithInt32Response(i2cDevice, sensorAddress, 
@@ -244,3 +255,40 @@ SetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType vidType) {
     BuildCommand(cmdBody, &param, _cmd);
     return SendCommand(i2cDevice, sensorAddress, _cmd);
 }
+
+NvMediaStatus
+GetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr,
+    uint32_t *result)
+{
+    uint16_t cmdBody[4];
+    _StringToCommand(cmdBody, cmdStr);
+    
+    return _RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody,
+        result);
+}
+
+NvMediaStatus
+GetStringValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr,
+    char *result)
+{
+    NvMediaStatus status;
+    uint16_t cmdBody[4];
+    _StringToCommand(cmdBody, cmdStr);
+    
+    status = _RunCommandWithStringResponse(i2cDevice, sensorAddress, cmdBody, 
+        result, 32);
+    return status;
+}
+
+NvMediaStatus
+SetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr, 
+    char *arg)
+{
+    uint16_t cmdBody[4];
+    uint32_t param = (uint32_t)strtol(arg, NULL, 16);
+    _StringToCommand(cmdBody, cmdStr);
+
+    BuildCommand(cmdBody, &param, _cmd);
+    return SendCommand(i2cDevice, sensorAddress, _cmd);
+}
+

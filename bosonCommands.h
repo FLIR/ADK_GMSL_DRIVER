@@ -9,12 +9,14 @@
 
 typedef enum {
     WHITE_HOT = 0,
-    BLACK_HOT
+    BLACK_HOT,
+    PALETTE_END
 } BosonColor;
 
 typedef enum {
     MANUAL_FFC = 0,
-    AUTO_FFC
+    AUTO_FFC,
+    FFC_END
 } FFCMode;
 
 typedef enum {
@@ -71,5 +73,17 @@ GetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType *vidType);
 
 NvMediaStatus
 SetVideoType(uint32_t i2cDevice, uint32_t sensorAddress, VideoType vidType);
+
+NvMediaStatus
+GetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr,
+    uint32_t *result);
+
+NvMediaStatus
+GetStringValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr,
+    char *result);
+
+NvMediaStatus
+SetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr, 
+    char *arg);
 
 #endif

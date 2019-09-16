@@ -52,7 +52,7 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytes
     // std::ofstream outfile ("cvimg.out",std::ofstream::binary); 
     // outfile.write((char *)data, height * width * bytesPerPixel);
     // outfile.close();
-    // agc();
+    agc();
 }
 
 void OpencvWrapper::startRecording(int fps, std::string filename) {

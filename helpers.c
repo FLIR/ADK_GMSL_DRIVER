@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "log_utils.h"
 #include "misc_utils.h"
@@ -111,5 +112,18 @@ void
 LsbToMsbArr(uint8_t *dest, uint32_t src) {
     for (size_t i = 0; i < 4; i++) {
         dest[i] = (src >> (24 - (8 * i))) & 0xFF;
+    }
+}
+
+void
+SplitString(char **dest, char *src, char *delim) {
+    char *pch;
+    uint32_t i = 0;
+
+    pch = strtok(src, delim);
+    while(pch != NULL) {
+        dest[i] = pch;
+        pch = strtok(NULL, delim);
+        i++;
     }
 }

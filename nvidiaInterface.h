@@ -6,47 +6,37 @@
 
 extern "C" {
     #include "cmdline.h"    
+    #include "bosonCommands.h"
 }
 
-typedef enum {
-    WHITE_HOT = 0,
-    BLACK_HOT
-} PaletteColor;
+namespace BosonAPI {
 
-typedef enum {
-    MANUAL_FFC = 0,
-    AUTO_FFC
-} FFCMode;
-
-typedef enum {
-    PACKING_DEFAULT = 0,
-    PACKING_Y,
-    PACKING_8_BIT,
-    PACKING_END
-} TelemetryPacking;
-
-typedef enum {
-    VIDEO_MONO16 = 0,
-    VIDEO_MONO8,
-    VIDEO_COLOR,
-    VIDEO_ANALOG,
-    VIDEO_END
-} VideoType;
+typedef struct {
+    std::string regFile;
+    int displayId;
+    int logLevel;
+} CmdArgs;
 
 class NvidiaInterface {
     public:
         NvidiaInterface();
         ~NvidiaInterface();
-        void run(TestArgs *args);
-        // void ffc();
-        // uint32_t getSerialNumber();
-        // void setColors(PaletteColor color);
-        // PaletteColor getSceneColor();
-        // void setFfcMode(FFCMode mode);
-        // FFCMode getFfcMode();
-        // std::string getPartNumber();
+        void run(CmdArgs args);
+        void runC(TestArgs *args);
+        void ffc();
+        uint32_t getSerialNumber();
+        void setColors(BosonColor color);
+        BosonColor getSceneColor();
+        void setFfcMode(FFCMode mode);
+        FFCMode getFfcMode();
+        std::string getPartNumber();
     private:
-        bool isRunning = false;
+        int i2cDevice = -1;
+        int sensorAddress = -1;
+
+        bool getI2CInfo(char *filename, int *deviceHandle, int *sensorHandle);
 };
+
+}
 
 #endif
