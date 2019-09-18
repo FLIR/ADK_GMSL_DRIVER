@@ -56,6 +56,7 @@ ParseRegistersFile(char *filename,
     memset((void *)stringBuf, 0, MAX_STRING_SIZE);
 
     params->pixelOrder.uIntValue = NVMEDIA_RAW_PIXEL_ORDER_BGGR;  //default pixel order
+    params->multiplex = 0;
 
     while (fgets(readLine, MAX_STRING_SIZE, file) != NULL) {
         deviceAddress = 0;
@@ -275,6 +276,8 @@ ParseRegistersFile(char *filename,
                   stringBuf) == 1) {
             params->resolution.isUsed = NVMEDIA_TRUE;
             strcpy(params->resolution.stringValue, stringBuf);
+        } else if(!strncmp(parsedLine, "; Multiplex", 11)) {
+            params->multiplex = 1;
         } else if (sscanf(parsedLine, "; CSI Lanes: %u",
                   &uIntBuf) == 1) {
             params->csiLanes.isUsed = NVMEDIA_TRUE;

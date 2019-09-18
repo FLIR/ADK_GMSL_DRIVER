@@ -19,7 +19,8 @@ NvMediaStatus
 ImageToBytes(NvMediaImage *imgSrc,
             uint8_t *dstBuffer,
             uint8_t *telemetry,
-            uint32_t rawBytesPerPixel);
+            uint32_t rawBytesPerPixel,
+            uint8_t multiplex);
 
 void
 MsbToLsb32(uint32_t *dest, uint8_t *src);

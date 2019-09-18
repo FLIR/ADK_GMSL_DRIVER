@@ -236,6 +236,9 @@ _SetICPSettings(CaptureThreadCtx *ctx,
                 __func__, inputFormat);
         return NVMEDIA_STATUS_BAD_PARAMETER;
     }
+    if(captureParams->multiplex) {
+        width *= 2;
+    }
     ctx->surfType = NvMediaSurfaceFormatGetType(surfFormatAttrs, NVM_SURF_FMT_ATTR_MAX);
 
     /* Set NvMediaICPSettings */
@@ -252,6 +255,8 @@ _SetICPSettings(CaptureThreadCtx *ctx,
     icpSettings->interfaceLanes = captureParams->csiLanes.uIntValue;
     icpSettings->surfaceType = ctx->surfType;
     icpSettings->phyMode = phyMode;
+
+    ctx->multiplex = captureParams->multiplex;
 
     /* Set SurfaceAllocAttrs */
     ctx->surfAllocAttrs[0].type = NVM_SURF_ATTR_WIDTH;
@@ -352,13 +357,18 @@ _CaptureThreadFunc(void *data)
         }
 
         // send frame to Opencv
-        if(!(imgData = malloc(capturedImage->width * capturedImage->height * 
+        uint32_t correctedWidth = capturedImage->width;
+        if(threadCtx->multiplex) {
+            correctedWidth /= 2;
+        }
+
+        if(!(imgData = malloc(correctedWidth * capturedImage->height * 
             threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
         {
             LOG_ERR("%s: Out of memory", __func__);
             goto done;
         }
-        if(!(telemetry = malloc(capturedImage->width * 
+        if(!(telemetry = malloc(correctedWidth * 
             threadCtx->rawBytesPerPixel * sizeof(uint8_t)))) 
         {
             LOG_ERR("%s: Out of memory", __func__);
@@ -366,16 +376,16 @@ _CaptureThreadFunc(void *data)
         }
 
         status = ImageToBytes(capturedImage, imgData, telemetry, 
-            threadCtx->rawBytesPerPixel);
+            threadCtx->rawBytesPerPixel, threadCtx->multiplex);
         if(status != NVMEDIA_STATUS_OK) {
             LOG_ERR("%s: Could not convert image to bytes", __func__);
             goto done;
         }
 
-        Opencv_sendFrame(imgData, capturedImage->width, 
+        Opencv_sendFrame(imgData, correctedWidth, 
             capturedImage->height - 1, threadCtx->rawBytesPerPixel);
         Opencv_sendTelemetry(telemetry, 
-            capturedImage->width * threadCtx->rawBytesPerPixel);
+            correctedWidth * threadCtx->rawBytesPerPixel);
 
         // calculate fps
         GetTimeMicroSec(&tend);
@@ -410,6 +420,14 @@ done:
                 *threadCtx->quit = NVMEDIA_TRUE;
             }
             capturedImage = NULL;
+        }
+        if(imgData) {
+            free(imgData);
+            imgData = NULL;
+        }
+        if(telemetry) {
+            free(telemetry);
+            telemetry = NULL;
         }
         i++;
 

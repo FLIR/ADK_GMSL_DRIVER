@@ -15,6 +15,7 @@
 ; CSI Lanes: 4           # If CSI Lanes = 1 wont work
 ; I2C Device: 0          # 1 csi-ef,2 csi-cd,7 csi-ab
 ; Sensor Address: 0xD8   # this is the Boson address (in this case doesn't apply...)
+; Multiplex              # notify application that multiplexing is on
 
 # Wait for Serializer to power up
 ; Delay 1000ms
@@ -106,7 +107,7 @@ D8 00 00
 D8 00 02
 D8 00 2A
 D8 00 AE # end signal
-# set camera to multiplex
+# set IR16
 D8 00 8E # start signal
 D8 00 00
 D8 00 12
@@ -116,7 +117,7 @@ D8 00 EE
 D8 00 00
 D8 00 06
 D8 00 00
-D8 00 0A
+D8 00 06
 D8 00 FF
 D8 00 FF
 D8 00 FF
@@ -124,12 +125,48 @@ D8 00 FF
 D8 00 00
 D8 00 00
 D8 00 00
+D8 00 03
+D8 00 F0
+D8 00 95
+D8 00 AE # end signal
+# set output IR16 format to MIR
+D8 00 8E # start signal
 D8 00 00
+D8 00 12
+D8 00 C0
+D8 00 FF
+D8 00 EE
+D8 00 00
+D8 00 06
+D8 00 00
+D8 00 1C
+D8 00 FF
+D8 00 FF
+D8 00 FF
+D8 00 FF
 D8 00 00
 D8 00 00
 D8 00 00
 D8 00 01
-D8 00 FC
-D8 00 80
+D8 00 6C
+D8 00 B1
+D8 00 AE # end signal
+# apply custom settings
+D8 00 8E # start signal
+D8 00 00
+D8 00 12
+D8 00 C0
+D8 00 FF
+D8 00 EE
+D8 00 00
+D8 00 06
+D8 00 00
+D8 00 0C
+D8 00 FF
+D8 00 FF
+D8 00 FF
+D8 00 FF
+D8 00 58
+D8 00 23
 D8 00 AE # end signal
 D8 09 00

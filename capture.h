@@ -54,6 +54,7 @@ typedef struct {
     uint32_t                    numSurfAllocAttrs;
 
     uint32_t                    fps;
+    uint8_t                     multiplex;
 
 } CaptureThreadCtx;
 

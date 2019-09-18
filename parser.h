@@ -38,6 +38,7 @@ typedef struct {
     InputParameter               deserAddress;
     InputParameter               pixelOrder;
     InputParameter               emb;
+    int                          multiplex;
 } CaptureConfigParams;
 
 NvMediaStatus

@@ -57,7 +57,8 @@ NvMediaStatus
 ImageToBytes(NvMediaImage *imgSrc,
               uint8_t *dstBuffer,
               uint8_t *telemetry,
-              uint32_t rawBytesPerPixel)
+              uint32_t rawBytesPerPixel,
+              uint8_t multiplex)
 {
     uint8_t *pSrcBuff = NULL;
     NvMediaImageSurfaceMap surfaceMap;
@@ -83,12 +84,23 @@ ImageToBytes(NvMediaImage *imgSrc,
     status = NvMediaImageGetBits(imgSrc, NULL, (void **)&pSrcBuff, &srcPitch);
     NvMediaImageUnlock(imgSrc);
 
-    // skip the first row (telemetry line)
-    memcpy(dstBuffer, &pSrcBuff[srcPitch], 
-        srcPitch * (srcHeight - 1) * sizeof(uint8_t));
+    if(multiplex) {
+        // get telemetry
+        for (size_t i = 0; i < srcPitch; i+=2) {
+            telemetry[i/2] = pSrcBuff[i];
+        }
+        // get image (skip telemetry line)
+        for (size_t i = srcPitch; i < srcPitch * srcHeight; i+=2) {
+            dstBuffer[(i - srcPitch)/2] = pSrcBuff[i];
+        }
+    } else {
+        // get telemetry data
+        memcpy(telemetry, pSrcBuff, srcPitch * sizeof(uint8_t));
 
-    // get telemetry data
-    memcpy(telemetry, pSrcBuff, srcPitch * sizeof(uint8_t));
+        // skip the first row (telemetry line)
+        memcpy(dstBuffer, &pSrcBuff[srcPitch], 
+            srcPitch * (srcHeight - 1) * sizeof(uint8_t));
+    }
 
     // FILE *fp = fopen("img.out", "w");
     // fwrite(dstBuffer, srcPitch * (srcHeight - 1), sizeof(uint8_t), fp);
