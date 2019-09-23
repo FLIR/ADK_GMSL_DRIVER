@@ -91,6 +91,15 @@ void NvidiaInterface::ffc() {
     TriggerShutter(i2cDevice, sensorAddress);
 }
 
+void NvidiaInterface::toggleHeater() {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    ToggleHeater(i2cDevice, sensorAddress);
+}
+
 uint32_t NvidiaInterface::getSerialNumber() {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
@@ -154,6 +163,47 @@ std::string NvidiaInterface::getPartNumber() {
     std::string pnStr(pn);
 
     return pnStr;
+}
+
+void NvidiaInterface::runI2CCommand(uint16_t *cmd) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    RunVoidCommand(i2cDevice, sensorAddress, cmd, NULL);
+}
+
+uint32_t NvidiaInterface::getI2CInt(uint16_t *cmd) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return 0;
+    }
+
+    uint32_t result;
+    RunCommandWithInt32Response(i2cDevice, sensorAddress, cmd, &result);
+    return result;
+}
+
+std::string NvidiaInterface::getI2CString(uint16_t *cmd) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return "";
+    }
+    
+    char result[32];
+    RunCommandWithStringResponse(i2cDevice, sensorAddress, cmd, result, 32);
+    std::string resString(result);
+    return resString;
+}
+
+void NvidiaInterface::setI2CInt(uint16_t *cmd, uint32_t val) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    RunVoidCommand(i2cDevice, sensorAddress, cmd, &val);
 }
 
 int main(int argc, char **argv) {

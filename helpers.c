@@ -104,7 +104,7 @@ ImageToBytes(NvMediaImage *imgSrc,
 
     // FILE *fp = fopen("img.out", "w");
     // fwrite(dstBuffer, srcPitch * (srcHeight - 1), sizeof(uint8_t), fp);
-    // fclose(fp);    
+    // fclose(fp);
 
     if(pSrcBuff)
         free(pSrcBuff);

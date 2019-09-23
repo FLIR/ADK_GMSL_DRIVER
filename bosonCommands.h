@@ -44,7 +44,22 @@ void
 ColorToString(uint32_t val, char *outStr);
 
 NvMediaStatus
+RunCommandWithInt32Response(uint32_t i2cDevice, uint32_t sensorAddress, 
+    uint16_t *cmdBody, uint32_t *resp);
+
+NvMediaStatus
+RunCommandWithStringResponse(uint32_t i2cDevice, uint32_t sensorAddress, 
+    uint16_t *cmdBody, char *resp, uint32_t length);
+
+NvMediaStatus
+RunVoidCommand(uint32_t i2cDevice, uint32_t sensorAddress, uint16_t *cmdBody,
+    uint32_t *param);
+
+NvMediaStatus
 TriggerShutter(uint32_t i2cDevice, uint32_t sensorAddress);
+
+NvMediaStatus
+ToggleHeater(uint32_t i2cDevice, uint32_t sensorAddress);
 
 NvMediaStatus
 GetSerialNumber(uint32_t i2cDevice, uint32_t sensorAddress, uint32_t *sn);
