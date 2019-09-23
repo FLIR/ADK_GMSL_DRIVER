@@ -23,6 +23,7 @@ class NvidiaInterface {
         ~NvidiaInterface();
         void run(CmdArgs args);
         void runC(TestArgs *args);
+        void getFrame(void *frame);
         void ffc();
         void toggleHeater();
         uint32_t getSerialNumber();

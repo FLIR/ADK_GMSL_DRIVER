@@ -2,8 +2,12 @@
 
 #include "opencvWrapper.h"
 
-OpencvWrapper::OpencvWrapper() {
-    imgBuffer = nullptr;
+OpencvWrapper::OpencvWrapper(int width, int height, int bytesPerPixel) :
+    width(width),
+    height(height),
+    bytesPerPixel(bytesPerPixel),
+    imgBuffer(nullptr)
+{
 }
 
 OpencvWrapper::~OpencvWrapper() {
@@ -26,8 +30,12 @@ void OpencvWrapper::hello() {
     cv::waitKey();
 }
 
-void OpencvWrapper::sendFrame(uint8_t *data, int width, int height, int bytesPerPixel) {
-    setImgBuffer(data, width, height, bytesPerPixel);
+void OpencvWrapper::sendFrame(uint8_t *data) {
+    setImgBuffer(data);
+}
+
+void OpencvWrapper::getFrame(uint8_t *data) {
+    memcpy(data, imgBuffer, width * height * bytesPerPixel * sizeof(uint8_t));
 }
 
 void OpencvWrapper::display() {
@@ -35,7 +43,7 @@ void OpencvWrapper::display() {
     cv::waitKey(1);
 }
 
-void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytesPerPixel) {
+void OpencvWrapper::setImgBuffer(uint8_t *data) {
     if(!imgBuffer) {
         imgBuffer = new uint8_t[width * height * bytesPerPixel];
         int pixelType = CV_8UC1;
@@ -47,12 +55,7 @@ void OpencvWrapper::setImgBuffer(uint8_t *data, int width, int height, int bytes
     }
     memcpy(imgBuffer, data, width * height * bytesPerPixel);
 
-    // TODO: issue possibly due to clipping 16-bit values 
-    // output image bytes and view in Python to confirm
-    // std::ofstream outfile ("cvimg.out",std::ofstream::binary); 
-    // outfile.write((char *)data, height * width * bytesPerPixel);
-    // outfile.close();
-    // agc();
+    agc();
 }
 
 void OpencvWrapper::startRecording(int fps, std::string filename) {
