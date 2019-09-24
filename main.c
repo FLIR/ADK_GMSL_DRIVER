@@ -80,9 +80,8 @@ ExecuteNextCommand(NvMainContext *ctx) {
     return 0;
 }
 
-int Run(TestArgs *allArgs)
-{
-    NvMainContext mainCtx;
+static NvMediaStatus 
+InitSignals(NvMainContext *mainCtx) {
     sigset_t set;
     int status;
 
@@ -91,7 +90,7 @@ int Run(TestArgs *allArgs)
 
     if (0 != status) {
         LOG_ERR("%s: Failed to empty signal set\n");
-        return -1;
+        return NVMEDIA_STATUS_ERROR;
     }
 
     /* add signals to be blocked */
@@ -107,71 +106,89 @@ int Run(TestArgs *allArgs)
 
     if (0 != status) {
         LOG_ERR("%s: Failed to blocks signals\n");
-        return -1;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    memset(&mainCtx, 0, sizeof(NvMainContext));
-    mainCtx.cmd = malloc(256);
+    memset(mainCtx, 0, sizeof(NvMainContext));
+    mainCtx->cmd = malloc(256);
 
     if (CheckModulesVersion() != NVMEDIA_STATUS_OK) {
-        return -1;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    quit_flag = &mainCtx.quit;
-    cmd_listener = mainCtx.cmd;
+    quit_flag = &mainCtx->quit;
+    cmd_listener = mainCtx->cmd;
     SigSetup();
 
+    return NVMEDIA_STATUS_OK;
+}
+
+static NvMediaStatus
+InitPipeline(NvMainContext *mainCtx, TestArgs *allArgs) {
     /* Initialize context */
-    mainCtx.testArgs = allArgs;
+    mainCtx->testArgs = allArgs;
 
     /* Initialize all the components */
-    if (CaptureInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (CaptureInit(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Capture\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (ListenerInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (ListenerInit(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Boson Commands\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (SaveInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (SaveInit(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Save\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (DisplayInit(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (DisplayInit(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Display\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
     /* Call Proc for each component */
-    if (CaptureProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (CaptureProc(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: CaptureProc Failed\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (ListenerProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (ListenerProc(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: BosonProc Failed\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (SaveProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (SaveProc(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: SaveProc Failed\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-    if (DisplayProc(&mainCtx) != NVMEDIA_STATUS_OK) {
+    if (DisplayProc(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: DisplayProc Failed\n", __func__);
-        goto done;
+        return NVMEDIA_STATUS_ERROR;
     }
 
-//     /* unblock the signals, they will be handled only by the main thread */
-//     status = pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-//     if (0 != status) {
-//         LOG_ERR("%s: Failed to unblock signals\n", __func__);
-//         goto done;
-//     }
+    return NVMEDIA_STATUS_OK;
+}
+
+static NvMediaStatus
+InitRunner(NvMainContext *mainCtx, TestArgs *allArgs) {
+    NvMediaStatus sigResult = InitSignals(mainCtx);
+    if(sigResult != NVMEDIA_STATUS_OK) {
+        return sigResult;
+    }
+    return InitPipeline(mainCtx, allArgs);
+}
+
+int Run(TestArgs *allArgs)
+{
+    NvMainContext mainCtx;
+    
+    if(InitRunner(&mainCtx, allArgs) != NVMEDIA_STATUS_OK) {
+        goto done;
+    }
 
     while (!mainCtx.quit) {
         if (!allArgs->frames.isUsed) {
