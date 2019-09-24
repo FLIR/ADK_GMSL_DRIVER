@@ -40,6 +40,19 @@ void NvidiaInterface::runC(TestArgs *args) {
     Run(args, &mainCtx);
 }
 
+bool NvidiaInterface::isRunning() {
+    return !mainCtx.quit;
+}
+
+std::string NvidiaInterface::getUserInput() {
+    std::string input(mainCtx.cmd);
+    return input;
+}
+
+void NvidiaInterface::flushInput() {
+    memset(mainCtx.cmd, 0, sizeof(mainCtx.cmd));
+}
+
 bool NvidiaInterface::getI2CInfo(char *filename, int *deviceHandle, 
     int *sensorHandle)
 {
@@ -118,15 +131,20 @@ void NvidiaInterface::setColors(BosonColor color) {
     SetColors(i2cDevice, sensorAddress, color);
 }
 
-BosonColor NvidiaInterface::getSceneColor() {
+std::string NvidiaInterface::getSceneColor() {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
-        return PALETTE_END;
+        return "";
     }
 
     BosonColor color;
+    char response[32];
     GetColorMode(i2cDevice, sensorAddress, &color);
-    return color;
+    ColorToString(color, response);
+
+    std::string sceneColor(response);
+
+    return sceneColor;
 }
 
 void NvidiaInterface::setFfcMode(FFCMode mode) {
@@ -138,15 +156,19 @@ void NvidiaInterface::setFfcMode(FFCMode mode) {
     SetFFCMode(i2cDevice, sensorAddress, mode);
 }
 
-FFCMode NvidiaInterface::getFfcMode() {
+std::string NvidiaInterface::getFfcMode() {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
-        return FFC_END;
+        return "";
     }
 
     FFCMode mode;
+    char responseStr[32];
     GetFFCMode(i2cDevice, sensorAddress, &mode);
-    return mode;
+    FFCModeToString(mode, responseStr);
+    std::string ffcMode(responseStr);
+
+    return ffcMode;
 }
 
 std::string NvidiaInterface::getPartNumber() {
@@ -213,6 +235,21 @@ uint32_t NvidiaInterface::getFps() {
     GetFPS(i2cDevice, sensorAddress, &fps);
     
     return fps;
+}
+
+std::string NvidiaInterface::getVideoType() {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    VideoType video;
+    char responseStr[32];
+    GetVideoType(i2cDevice, sensorAddress, &video);
+    VideoTypeToString(video, responseStr);
+    std::string vidType(responseStr);
+
+    return vidType;
 }
 
 void NvidiaInterface::startRecording(std::string filename) {

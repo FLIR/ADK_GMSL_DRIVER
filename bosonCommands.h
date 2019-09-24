@@ -43,6 +43,9 @@ FFCModeToString(uint32_t val, char *outStr);
 void
 ColorToString(uint32_t val, char *outStr);
 
+void
+VideoTypeToString(uint32_t val, char *outStr) {
+
 NvMediaStatus
 RunCommandWithInt32Response(uint32_t i2cDevice, uint32_t sensorAddress, 
     uint16_t *cmdBody, uint32_t *resp);

@@ -14,7 +14,6 @@
 #include "check_version.h"
 #include "capture.h"
 #include "save.h"
-#include "commandListener.h"
 #include "display.h"
 
 /* Quit flag. Out of context structure for sig handling */
@@ -135,11 +134,6 @@ InitPipeline(NvMainContext *mainCtx, TestArgs *allArgs) {
         return NVMEDIA_STATUS_ERROR;
     }
 
-    if (ListenerInit(mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: Failed to Initialize Boson Commands\n", __func__);
-        return NVMEDIA_STATUS_ERROR;
-    }
-
     if (SaveInit(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: Failed to Initialize Save\n", __func__);
         return NVMEDIA_STATUS_ERROR;
@@ -153,11 +147,6 @@ InitPipeline(NvMainContext *mainCtx, TestArgs *allArgs) {
     /* Call Proc for each component */
     if (CaptureProc(mainCtx) != NVMEDIA_STATUS_OK) {
         LOG_ERR("%s: CaptureProc Failed\n", __func__);
-        return NVMEDIA_STATUS_ERROR;
-    }
-
-    if (ListenerProc(mainCtx) != NVMEDIA_STATUS_OK) {
-        LOG_ERR("%s: BosonProc Failed\n", __func__);
         return NVMEDIA_STATUS_ERROR;
     }
 
@@ -198,7 +187,6 @@ int Run(TestArgs *allArgs, NvMainContext *mainCtx)
 done:
     DisplayFini(mainCtx);
     SaveFini(mainCtx);
-    ListenerFini(mainCtx);
     CaptureFini(mainCtx);
     return 0;
 }
