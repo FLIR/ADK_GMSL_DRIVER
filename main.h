@@ -24,11 +24,11 @@ typedef struct {
     void                        *ctxs[MAX_NUM_ELEMENTS];
     TestArgs                    *testArgs;
     volatile NvMediaBool         quit;
-    volatile NvMediaBool         toggleRecording;
+    volatile NvMediaBool         videoEnabled;
     char                        *cmd;
 } NvMainContext;
 
-int Run(TestArgs *allArgs);
+int Run(TestArgs *allArgs, NvMainContext *mainCtx);
 
 #endif
 

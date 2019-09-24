@@ -4,10 +4,6 @@
 #include <regex>
 #include "nvidiaInterface.h"
 
-extern "C" {
-    #include "main.h"
-}
-
 using namespace BosonAPI;
 
 NvidiaInterface::NvidiaInterface() {}
@@ -40,7 +36,7 @@ void NvidiaInterface::runC(TestArgs *args) {
     if(args->wrregs.isUsed) {
         getI2CInfo(args->wrregs.stringValue, &i2cDevice, &sensorAddress);
     }
-    Run(args);
+    Run(args, &mainCtx);
 }
 
 bool NvidiaInterface::getI2CInfo(char *filename, int *deviceHandle, 
@@ -205,6 +201,15 @@ void NvidiaInterface::setI2CInt(uint16_t *cmd, uint32_t val) {
 
     RunVoidCommand(i2cDevice, sensorAddress, cmd, &val);
 }
+
+void NvidiaInterface::startRecording(int fps, std::string filename) {
+    
+}
+
+void NvidiaInterface::stopRecording() {
+
+}
+
 
 int main(int argc, char **argv) {
     NvidiaInterface interface;

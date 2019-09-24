@@ -27,8 +27,7 @@ typedef struct {
     NvQueue                    *inputQueue;
     NvQueue                    *outputQueue;
     volatile NvMediaBool       *quit;
-    volatile NvMediaBool       *toggleRecording;
-    NvMediaBool                 videoEnabled;
+    NvMediaBool                *videoEnabled;
     NvMediaBool                 exitedFlag;
 
     /* save params */

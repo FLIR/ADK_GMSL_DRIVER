@@ -5,6 +5,7 @@
 #include <cstdint>
 
 extern "C" {
+    #include "main.h"
     #include "cmdline.h"    
     #include "bosonCommands.h"
 }
@@ -42,6 +43,7 @@ class NvidiaInterface {
         int i2cDevice = -1;
         int sensorAddress = -1;
 
+        NvMainContext mainCtx;
         bool getI2CInfo(char *filename, int *deviceHandle, int *sensorHandle);
 };
 

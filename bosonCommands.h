@@ -101,4 +101,7 @@ NvMediaStatus
 SetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr, 
     char *arg);
 
+NvMediaStatus
+GetFPS(uint32_t i2cDevice, uint32_t sensorAddress, uint32_t *fps);
+
 #endif

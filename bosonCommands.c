@@ -302,3 +302,9 @@ SetIntValue(uint32_t i2cDevice, uint32_t sensorAddress, char *cmdStr,
     return SendCommand(i2cDevice, sensorAddress, _cmd);
 }
 
+NvMediaStatus
+GetFPS(uint32_t i2cDevice, uint32_t sensorAddress, uint32_t *fps) {
+    uint16_t cmdBody[4] = {0x00, 0x0E, 0x00, 0x07};
+
+    return RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody, fps);
+}

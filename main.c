@@ -111,6 +111,7 @@ InitSignals(NvMainContext *mainCtx) {
 
     memset(mainCtx, 0, sizeof(NvMainContext));
     mainCtx->cmd = malloc(256);
+    strcpy(mainCtx->cmd, "");
 
     if (CheckModulesVersion() != NVMEDIA_STATUS_OK) {
         return NVMEDIA_STATUS_ERROR;
@@ -182,24 +183,22 @@ InitRunner(NvMainContext *mainCtx, TestArgs *allArgs) {
     return InitPipeline(mainCtx, allArgs);
 }
 
-int Run(TestArgs *allArgs)
+int Run(TestArgs *allArgs, NvMainContext *mainCtx)
 {
-    NvMainContext mainCtx;
-    
-    if(InitRunner(&mainCtx, allArgs) != NVMEDIA_STATUS_OK) {
+    if(InitRunner(mainCtx, allArgs) != NVMEDIA_STATUS_OK) {
         goto done;
     }
 
-    while (!mainCtx.quit) {
+    while (!mainCtx->quit) {
         if (!allArgs->frames.isUsed) {
-            ExecuteNextCommand(&mainCtx);
+            ExecuteNextCommand(mainCtx);
         }
     }
 
 done:
-    DisplayFini(&mainCtx);
-    SaveFini(&mainCtx);
-    ListenerFini(&mainCtx);
-    CaptureFini(&mainCtx);
+    DisplayFini(mainCtx);
+    SaveFini(mainCtx);
+    ListenerFini(mainCtx);
+    CaptureFini(mainCtx);
     return 0;
 }

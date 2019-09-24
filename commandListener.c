@@ -8,6 +8,7 @@
 #include "capture.h"
 #include "bosonCommands.h"
 #include "helpers.h"
+#include "opencvConnector.h"
 #include "commandListener.h"
 
 static uint32_t
@@ -16,6 +17,7 @@ _BosonThreadFunc(void *data) {
     NvMediaStatus status = NVMEDIA_STATUS_OK;
     uint32_t response = 0;
     char responseStr[64];
+    char inputParam[32];
 
     while(!(*threadCtx->quit)) {
         if(threadCtx->cmd && threadCtx->cmd[0] != '\0') {
@@ -75,10 +77,23 @@ _BosonThreadFunc(void *data) {
                 SplitString(inputs, threadCtx->cmd, " ");
                 status = SetIntValue(0, threadCtx->sensorAddress, inputs[1],
                     inputs[2]);
+            } else if(sscanf(threadCtx->cmd, "r %s", inputParam)) {
+                if(!(*threadCtx->videoEnabled)) {
+                    GetFPS(0, threadCtx->sensorAddress, &response);
+                    Opencv_startRecording(response, inputParam);
+                } else {
+                    LOG_WARN("Video already recording");
+                }
+                *threadCtx->videoEnabled = NVMEDIA_TRUE;
             } else if(!strcasecmp(threadCtx->cmd, "r")) {
-                *threadCtx->toggleRecording = !(*threadCtx->toggleRecording);
+                if(*threadCtx->videoEnabled) {
+                    Opencv_stopRecording();
+                } else {
+                    LOG_WARN("Video not recording");
+                }
+                *threadCtx->videoEnabled = NVMEDIA_FALSE;
             } else {
-                printf("%s: Unsupported input", __func__);
+                printf("%s: Unsupported input: %s\n", __func__, threadCtx->cmd);
             }
             if(status != NVMEDIA_STATUS_OK) {
                 LOG_ERR("%s: Unable to send I2C command", __func__);
@@ -180,7 +195,7 @@ ListenerProc(NvMainContext *mainCtx) {
     /* Create thread to save images */
     for (i = 0; i < bosonCtx->numVirtualChannels; i++) {
         bosonCtx->threadCtx[i].exitedFlag = NVMEDIA_FALSE;
-        bosonCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
+        bosonCtx->threadCtx[i].videoEnabled = &mainCtx->videoEnabled;
         status = NvThreadCreate(&bosonCtx->bosonThread[i],
                                 &_BosonThreadFunc,
                                 (void *)&bosonCtx->threadCtx[i],

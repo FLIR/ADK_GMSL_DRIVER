@@ -28,4 +28,7 @@ MsbToLsb32(uint32_t *dest, uint8_t *src);
 void
 LsbToMsbArr(uint8_t *dest, uint32_t src);
 
+int
+EndsWith(const char *str, const char *suffix);
+
 #endif

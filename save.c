@@ -66,16 +66,6 @@ _SaveThreadFunc(void *data)
                 goto loop_done;
         }
 
-        if (*threadCtx->toggleRecording) {
-            threadCtx->videoEnabled = (NvMediaBool)(!threadCtx->videoEnabled);
-            if(threadCtx->videoEnabled) {
-                Opencv_startRecording(*threadCtx->fps, "test.avi");
-            } else {
-                Opencv_stopRecording();
-            }
-            *threadCtx->toggleRecording = NVMEDIA_FALSE;
-        }
-
         if(threadCtx->videoEnabled) {
             Opencv_recordFrame();
         }
@@ -134,7 +124,7 @@ SaveInit(NvMainContext *mainCtx)
     /* Create save input Queues and set thread data */
     for (i = 0; i < saveCtx->numVirtualChannels; i++) {
         saveCtx->threadCtx[i].quit = saveCtx->quit;
-        saveCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
+        saveCtx->threadCtx[i].videoEnabled = &mainCtx->videoEnabled;
         saveCtx->threadCtx[i].exitedFlag = NVMEDIA_FALSE;
         saveCtx->threadCtx[i].saveFilePrefix = testArgs->filePrefix;
         saveCtx->threadCtx[i].virtualGroupIndex = captureCtx->threadCtx[i].virtualGroupIndex;
