@@ -19,7 +19,6 @@
 
 /* Quit flag. Out of context structure for sig handling */
 static volatile NvMediaBool *quit_flag;
-static volatile NvMediaBool *recording_flag;
 static char *cmd_listener;
 
 static void
@@ -74,8 +73,6 @@ ExecuteNextCommand(NvMainContext *ctx) {
     if (!strcasecmp(input, "q") || !strcasecmp(input, "quit")) {
         *quit_flag = NVMEDIA_TRUE;
         return 0;
-    } else if (!strcasecmp(input, "r")) {
-        *recording_flag = NVMEDIA_TRUE;
     } else if(input[0] != '\0') {
         sprintf(cmd_listener, input);
     }
@@ -121,7 +118,6 @@ int Run(TestArgs *allArgs)
     }
 
     quit_flag = &mainCtx.quit;
-    recording_flag = &mainCtx.toggleRecording;
     cmd_listener = mainCtx.cmd;
     SigSetup();
 

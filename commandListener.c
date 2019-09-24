@@ -75,8 +75,10 @@ _BosonThreadFunc(void *data) {
                 SplitString(inputs, threadCtx->cmd, " ");
                 status = SetIntValue(0, threadCtx->sensorAddress, inputs[1],
                     inputs[2]);
+            } else if(!strcasecmp(threadCtx->cmd, "r")) {
+                *threadCtx->toggleRecording = !(*threadCtx->toggleRecording);
             } else {
-                LOG_INFO("%s: Unsupported input", __func__);
+                printf("%s: Unsupported input", __func__);
             }
             if(status != NVMEDIA_STATUS_OK) {
                 LOG_ERR("%s: Unable to send I2C command", __func__);
@@ -178,6 +180,7 @@ ListenerProc(NvMainContext *mainCtx) {
     /* Create thread to save images */
     for (i = 0; i < bosonCtx->numVirtualChannels; i++) {
         bosonCtx->threadCtx[i].exitedFlag = NVMEDIA_FALSE;
+        bosonCtx->threadCtx[i].toggleRecording = &mainCtx->toggleRecording;
         status = NvThreadCreate(&bosonCtx->bosonThread[i],
                                 &_BosonThreadFunc,
                                 (void *)&bosonCtx->threadCtx[i],

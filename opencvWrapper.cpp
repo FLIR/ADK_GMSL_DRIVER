@@ -55,7 +55,7 @@ void OpencvWrapper::setImgBuffer(uint8_t *data) {
     }
     memcpy(imgBuffer, data, width * height * bytesPerPixel);
 
-    agc();
+    // agc();
 }
 
 void OpencvWrapper::startRecording(int fps, std::string filename) {

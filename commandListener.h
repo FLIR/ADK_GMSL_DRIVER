@@ -11,6 +11,7 @@ typedef struct {
     uint32_t                sensorAddress;
     char                   *cmd;
     volatile NvMediaBool   *quit;
+    volatile NvMediaBool   *toggleRecording;
     NvMediaBool             exitedFlag;
 } BosonThreadCtx;
 

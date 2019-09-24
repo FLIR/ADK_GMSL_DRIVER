@@ -24,6 +24,8 @@ class NvidiaInterface {
         void run(CmdArgs args);
         void runC(TestArgs *args);
         void getFrame(void *frame);
+        void startRecording(int fps, std::string filename);
+        void stopRecording();
         void ffc();
         void toggleHeater();
         uint32_t getSerialNumber();
