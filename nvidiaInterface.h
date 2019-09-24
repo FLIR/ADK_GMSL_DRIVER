@@ -25,7 +25,7 @@ class NvidiaInterface {
         void run(CmdArgs args);
         void runC(TestArgs *args);
         void getFrame(void *frame);
-        void startRecording(int fps, std::string filename);
+        void startRecording(std::string filename);
         void stopRecording();
         void ffc();
         void toggleHeater();
@@ -35,6 +35,7 @@ class NvidiaInterface {
         void setFfcMode(FFCMode mode);
         FFCMode getFfcMode();
         std::string getPartNumber();
+        uint32_t getFps();
         void runI2CCommand(uint16_t *cmd);
         uint32_t getI2CInt(uint16_t *cmd);
         std::string getI2CString(uint16_t *cmd);

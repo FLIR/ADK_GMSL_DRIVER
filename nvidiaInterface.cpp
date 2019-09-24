@@ -2,6 +2,7 @@
 #include <string>
 #include <fstream>
 #include <regex>
+#include "opencvConnector.h"
 #include "nvidiaInterface.h"
 
 using namespace BosonAPI;
@@ -202,14 +203,43 @@ void NvidiaInterface::setI2CInt(uint16_t *cmd, uint32_t val) {
     RunVoidCommand(i2cDevice, sensorAddress, cmd, &val);
 }
 
-void NvidiaInterface::startRecording(int fps, std::string filename) {
+uint32_t NvidiaInterface::getFps() {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+    uint32_t fps;
+
+    GetFPS(i2cDevice, sensorAddress, &fps);
     
+    return fps;
+}
+
+void NvidiaInterface::startRecording(std::string filename) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+    if(mainCtx.videoEnabled) {
+        LOG_WARN("Video already recording");
+        return;
+    }
+
+    uint32_t fps = getFps();
+    Opencv_startRecording(fps, (char *)filename.c_str());
 }
 
 void NvidiaInterface::stopRecording() {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+    if(!mainCtx.videoEnabled) {
+        LOG_WARN("Video not running");
+    }
 
+    Opencv_stopRecording();
 }
-
 
 int main(int argc, char **argv) {
     NvidiaInterface interface;
