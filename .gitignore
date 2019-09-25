@@ -4,3 +4,4 @@ build/
 *.so
 nvmimg_cc
 testbed/
+dist/
