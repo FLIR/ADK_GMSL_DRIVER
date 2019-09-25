@@ -23,7 +23,7 @@ class NvidiaInterface {
         NvidiaInterface();
         ~NvidiaInterface();
         void run(CmdArgs args);
-        void runC(TestArgs *args);
+        void run(TestArgs *args);
         bool isRunning();
         std::string getUserInput();
         void flushInput();

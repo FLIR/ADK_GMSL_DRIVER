@@ -15,7 +15,7 @@ void CommandListener::listen() {
     char inputParam[32];
     uint32_t inputNums[4];
 
-    while(interface->isRunning()) {
+    while(interface->isRunning() && !userCancel) {
         std::string userInput = interface->getUserInput();
         if(userInput.length() > 0) {
             if(boost::iequals(userInput, "f")) {
@@ -33,22 +33,22 @@ void CommandListener::listen() {
                 interface->setFfcMode(MANUAL_FFC);
             } else if(boost::iequals(userInput, "c")) {
                 responseStr = interface->getSceneColor();
-                printf("Color mode: %s\n", responseStr);
+                printf("Color mode: %s\n", responseStr.c_str());
             } else if(boost::iequals(userInput, "pn")) {
                 responseStr = interface->getPartNumber();
-                printf("Part number: %s\n", responseStr);
+                printf("Part number: %s\n", responseStr.c_str());
             } else if(boost::iequals(userInput, "mode")) {
                 responseStr = interface->getFfcMode();
-                printf("FFC mode: %s\n", responseStr);
+                printf("FFC mode: %s\n", responseStr.c_str());
             } else if(boost::iequals(userInput, "video")) {
                 responseStr = interface->getVideoType();
-                printf("Video type: %s\n", responseStr);
+                printf("Video type: %s\n", responseStr.c_str());
             } else if(sscanf(userInput.c_str(), "geti %x", &inputNums[0])) {
                 response = interface->getI2CInt(inputNums[0]);
                 printf("%d\n", response);
             } else if(sscanf(userInput.c_str(), "gets %x", &inputNums[0])) {
                 std::string i2cStr = interface->getI2CString(inputNums[0]);
-                printf("%s\n", i2cStr);
+                printf("%s\n", i2cStr.c_str());
             } else if(sscanf(userInput.c_str(), "seti %x %x", &inputNums[0],
                 &inputNums[1])) 
             {
@@ -58,7 +58,7 @@ void CommandListener::listen() {
             } else if(!strcasecmp(userInput.c_str(), "r")) {
                 interface->stopRecording();
             } else {
-                printf("%s: Unsupported input: %s\n", __func__, userInput);
+                printf("%s: Unsupported input: %s\n", __func__, userInput.c_str());
             }
 
             interface->flushInput();
@@ -66,3 +66,6 @@ void CommandListener::listen() {
     }
 }
 
+void CommandListener::stop() {
+    userCancel = true;
+}

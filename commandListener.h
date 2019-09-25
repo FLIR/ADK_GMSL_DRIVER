@@ -16,6 +16,7 @@ class CommandListener {
         void stop();
     private:
         NvidiaInterface *interface;
+        bool userCancel = false;
 };
 
 }

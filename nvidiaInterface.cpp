@@ -1,6 +1,8 @@
 #include <string>
 #include <fstream>
 #include <regex>
+#include <thread>
+#include "commandListener.h"
 #include "nvidiaInterface.h"
 
 extern "C" {
@@ -19,7 +21,9 @@ CommandFromInt(uint16_t *dst, uint32_t src) {
     }
 }
 
-NvidiaInterface::NvidiaInterface() {}
+NvidiaInterface::NvidiaInterface() {
+    mainCtx.quit = 0;
+}
 
 NvidiaInterface::~NvidiaInterface() {}
 
@@ -42,14 +46,21 @@ void NvidiaInterface::run(CmdArgs args) {
     strcpy(cargs.wrregs.stringValue, args.regFile.c_str());
     cargs.displayId = args.displayId;
 
-    runC(&cargs);
+    run(&cargs);
 }
 
-void NvidiaInterface::runC(TestArgs *args) {
+void NvidiaInterface::run(TestArgs *args) {
+    CommandListener listener(this);
+
     if(args->wrregs.isUsed) {
         getI2CInfo(args->wrregs.stringValue, &i2cDevice, &sensorAddress);
     }
-    Run(args, &mainCtx);
+
+    std::thread mainThread(Run, args, &mainCtx);
+    std::thread listenerThread(&CommandListener::listen, &listener);
+    mainThread.join();
+    listener.stop();
+    listenerThread.join();
 }
 
 bool NvidiaInterface::isRunning() {
@@ -57,6 +68,9 @@ bool NvidiaInterface::isRunning() {
 }
 
 std::string NvidiaInterface::getUserInput() {
+    if(!mainCtx.cmd) {
+        return "";
+    }
     std::string input(mainCtx.cmd);
     return input;
 }
@@ -79,19 +93,19 @@ bool NvidiaInterface::getI2CInfo(char *filename, int *deviceHandle,
         std::getline(f, line);
 
         std::cmatch matches;
-        std::regex re(";\s*I2C Device:\s*(\d+)\s*", 
+        std::regex re(";\\s*I2C Device:\\s*(\\d+).*$", 
             std::regex_constants::icase);
         if(std::regex_match(line.c_str(), matches, re)) {
-            *deviceHandle = atoi(matches[0].str().c_str());
+            *deviceHandle = atoi(matches[1].str().c_str());
         }
 
-        re.assign(";\s*Sensor Address:\s*0[xX]([0-9A-Fa-f]+)", 
+        re.assign(";\\s*Sensor Address:\\s*0[xX]([0-9A-Fa-f]+).*$", 
             std::regex_constants::icase);
         if(std::regex_match(line.c_str(), matches, re)) {
             char *p;
-            long res = strtol(matches[0].str().c_str(), &p, 16);
+            long res = strtol(matches[1].str().c_str(), &p, 16);
             if(*p == 0) {
-                *sensorHandle = (int)res;
+                *sensorHandle = (int)(res / 2);
             }
         }
         
@@ -282,6 +296,8 @@ void NvidiaInterface::startRecording(std::string filename) {
         return;
     }
 
+    mainCtx.videoEnabled = 1;
+
     uint32_t fps = getFps();
     Opencv_startRecording(fps, (char *)filename.c_str());
 }
@@ -295,6 +311,8 @@ void NvidiaInterface::stopRecording() {
         LOG_WARN("Video not running");
     }
 
+    mainCtx.videoEnabled = 0;
+
     Opencv_stopRecording();
 }
 
@@ -307,7 +325,9 @@ int main(int argc, char **argv) {
         return -1;
     }
     
-    interface.runC(&allArgs);
+    interface.run(&allArgs);
+
+    // for running with no command line arguments
     // CmdArgs args;
     // memset(&args, 0, sizeof(CmdArgs));
     // args.displayId = 1;
