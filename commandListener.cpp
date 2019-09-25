@@ -17,7 +17,7 @@ void CommandListener::listen() {
 
     while(interface->isRunning()) {
         std::string userInput = interface->getUserInput();
-        if(userInput.length > 0) {
+        if(userInput.length() > 0) {
             if(boost::iequals(userInput, "f")) {
                 interface->ffc();
             } else if(boost::iequals(userInput, "sn")) {

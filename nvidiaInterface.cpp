@@ -1,11 +1,23 @@
-#include <iostream>
 #include <string>
 #include <fstream>
 #include <regex>
-#include "opencvConnector.h"
 #include "nvidiaInterface.h"
 
+extern "C" {
+    #include "opencvConnector.h"
+    #include "helpers.h"
+}
+
 using namespace BosonAPI;
+
+static void
+CommandFromInt(uint16_t *dst, uint32_t src) {
+    uint8_t tempDst[4];
+    LsbToMsbArr(tempDst, src);
+    for (size_t i = 0; i < 4; i++) {
+        dst[i] = tempDst[i];
+    }
+}
 
 NvidiaInterface::NvidiaInterface() {}
 
@@ -184,51 +196,59 @@ std::string NvidiaInterface::getPartNumber() {
     return pnStr;
 }
 
-void NvidiaInterface::runI2CCommand(uint16_t *cmd) {
+void NvidiaInterface::runI2CCommand(uint32_t cmd) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return;
     }
+    uint16_t cmdBody[4];
+    CommandFromInt(cmdBody, cmd);
 
-    RunVoidCommand(i2cDevice, sensorAddress, cmd, NULL);
+    RunVoidCommand(i2cDevice, sensorAddress, cmdBody, NULL);
 }
 
-uint32_t NvidiaInterface::getI2CInt(uint16_t *cmd) {
+uint32_t NvidiaInterface::getI2CInt(uint32_t cmd) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return 0;
     }
+    uint16_t cmdBody[4];
+    CommandFromInt(cmdBody, cmd);
 
     uint32_t result;
-    RunCommandWithInt32Response(i2cDevice, sensorAddress, cmd, &result);
+    RunCommandWithInt32Response(i2cDevice, sensorAddress, cmdBody, &result);
     return result;
 }
 
-std::string NvidiaInterface::getI2CString(uint16_t *cmd) {
+std::string NvidiaInterface::getI2CString(uint32_t cmd) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return "";
     }
+    uint16_t cmdBody[4];
+    CommandFromInt(cmdBody, cmd);
     
     char result[32];
-    RunCommandWithStringResponse(i2cDevice, sensorAddress, cmd, result, 32);
+    RunCommandWithStringResponse(i2cDevice, sensorAddress, cmdBody, result, 32);
     std::string resString(result);
     return resString;
 }
 
-void NvidiaInterface::setI2CInt(uint16_t *cmd, uint32_t val) {
+void NvidiaInterface::setI2CInt(uint32_t cmd, uint32_t val) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return;
     }
+    uint16_t cmdBody[4];
+    CommandFromInt(cmdBody, cmd);
 
-    RunVoidCommand(i2cDevice, sensorAddress, cmd, &val);
+    RunVoidCommand(i2cDevice, sensorAddress, cmdBody, &val);
 }
 
 uint32_t NvidiaInterface::getFps() {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
-        return;
+        return 0;
     }
     uint32_t fps;
 
@@ -240,7 +260,7 @@ uint32_t NvidiaInterface::getFps() {
 std::string NvidiaInterface::getVideoType() {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
-        return;
+        return "";
     }
 
     VideoType video;
