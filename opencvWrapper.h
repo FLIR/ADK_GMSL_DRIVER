@@ -16,6 +16,7 @@ class OpencvWrapper {
         void hello();
         void sendFrame(uint8_t *data);
         void getFrame(uint8_t *data);
+        void getTelemetry(uint8_t *data);
         void display();
         void startRecording(int fps, std::string filename);
         void stopRecording();
@@ -25,6 +26,7 @@ class OpencvWrapper {
     private:
         int width, height, bytesPerPixel;
         uint8_t *imgBuffer;
+        uint8_t *telemetry;
         cv::Mat img;
         OpencvRecorder recorder;
         uint32_t serialNumber;

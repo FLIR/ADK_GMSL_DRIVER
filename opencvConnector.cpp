@@ -77,6 +77,24 @@ uint32_t Opencv_getSerialNumber() {
     return opencv->getSerialNumber();
 }
 
+void Opencv_getFrame(uint8_t *data) {
+    if(!opencv) {
+        LOG_ERR("OpenCV object must be initialized");
+        return;
+    }
+
+    return opencv->getFrame(data);
+}
+
+void Opencv_getTelemetry(uint8_t *telemetry) {
+    if(!opencv) {
+        LOG_ERR("OpenCV object must be initialized");
+        return;
+    }
+
+    return opencv->getTelemetry(telemetry);
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -127,6 +127,23 @@ bool NvidiaInterface::getI2CInfo(char *filename, int *deviceHandle,
     return true;
 }
 
+void NvidiaInterface::getFrame(uint8_t *frame) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    Opencv_getFrame(frame);
+}
+
+void NvidiaInterface::getTelemetry(uint8_t *telemetry) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    Opencv_getTelemetry(telemetry);
+}
 
 void NvidiaInterface::ffc() {
     if(i2cDevice == -1 || sensorAddress == -1) {
@@ -154,17 +171,24 @@ uint32_t NvidiaInterface::getSerialNumber() {
 
     uint32_t sn = 0;
     FLR_RESULT result = bosonGetCameraSN(&sn);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error getting value");
+        return 0;
+    }
 
     return sn;
 }
 
-void NvidiaInterface::setColors(BosonColor color) {
+void NvidiaInterface::setColors(const FLIR_COLOR color) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return;
     }
 
-    SetColors(i2cDevice, sensorAddress, color);
+    FLR_RESULT result = colorLutSetId((FLR_COLORLUT_ID_E)color);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error setting value");
+    }
 }
 
 std::string NvidiaInterface::getSceneColor() {
@@ -173,23 +197,26 @@ std::string NvidiaInterface::getSceneColor() {
         return "";
     }
 
-    BosonColor color;
-    char response[32];
-    GetColorMode(i2cDevice, sensorAddress, &color);
-    ColorToString(color, response);
-
-    std::string sceneColor(response);
-
-    return sceneColor;
+    FLR_COLORLUT_ID_E color;
+    FLR_RESULT result = colorLutGetId(&color);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error getting value");
+        return 0;
+    }
+    
+    return ColorToString((FLIR_COLOR)color);
 }
 
-void NvidiaInterface::setFfcMode(FFCMode mode) {
+void NvidiaInterface::setFfcMode(FLIR_FFCMODE ffcMode) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
         return;
     }
 
-    SetFFCMode(i2cDevice, sensorAddress, mode);
+    FLR_RESULT result = bosonSetFFCMode((FLR_BOSON_FFCMODE_E)ffcMode);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error setting value");
+    }
 }
 
 std::string NvidiaInterface::getFfcMode() {
@@ -198,13 +225,13 @@ std::string NvidiaInterface::getFfcMode() {
         return "";
     }
 
-    FFCMode mode;
-    char responseStr[32];
-    GetFFCMode(i2cDevice, sensorAddress, &mode);
-    FFCModeToString(mode, responseStr);
-    std::string ffcMode(responseStr);
-
-    return ffcMode;
+    FLR_BOSON_FFCMODE_E mode;
+    FLR_RESULT result = bosonGetFFCMode(&mode);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error getting value");
+    }
+    
+    return FFCModeToString((FLIR_FFCMODE)mode);
 }
 
 std::string NvidiaInterface::getPartNumber() {
@@ -213,11 +240,32 @@ std::string NvidiaInterface::getPartNumber() {
         return "";
     }
 
+    FLR_BOSON_PARTNUMBER_T pnRes;
+    FLR_RESULT result = bosonGetCameraPN(&pnRes);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error getting value");
+    }
+    
     char pn[64];
-    GetPartNumber(i2cDevice, sensorAddress, pn);
+    sprintf(pn, "%s", pnRes.value);
     std::string pnStr(pn);
 
     return pnStr;
+}
+
+std::string NvidiaInterface::getVideoType() {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return "";
+    }
+
+    FLR_DVO_TYPE_E video;
+    FLR_RESULT result = dvoGetType(&video);
+    if(result != R_SUCCESS) {
+        LOG_ERR("Error getting value");        
+    }
+    
+    return VideoTypeToString((FLIR_VIDEO)video);
 }
 
 void NvidiaInterface::runI2CCommand(uint32_t cmd) {
@@ -281,21 +329,6 @@ uint32_t NvidiaInterface::getFps() {
     return fps;
 }
 
-std::string NvidiaInterface::getVideoType() {
-    if(i2cDevice == -1 || sensorAddress == -1) {
-        LOG_ERR("Application must be running to use command");
-        return "";
-    }
-
-    VideoType video;
-    char responseStr[32];
-    GetVideoType(i2cDevice, sensorAddress, &video);
-    VideoTypeToString(video, responseStr);
-    std::string vidType(responseStr);
-
-    return vidType;
-}
-
 void NvidiaInterface::startRecording(std::string filename) {
     if(i2cDevice == -1 || sensorAddress == -1) {
         LOG_ERR("Application must be running to use command");
@@ -324,6 +357,39 @@ void NvidiaInterface::stopRecording() {
     mainCtx.videoEnabled = 0;
 
     Opencv_stopRecording();
+}
+
+std::string NvidiaInterface::FFCModeToString(FLIR_FFCMODE val) {
+    if(val == MANUAL_FFC) {
+        return "Manual";
+    }
+    if(val == AUTO_FFC) {
+        return "Auto";
+    }
+}
+
+std::string NvidiaInterface::ColorToString(FLIR_COLOR val) {
+    if(val == COLOR_WHITEHOT) {
+        return "White Hot";
+    }
+    if(val == COLOR_BLACKHOT) {
+        return "Black Hot";
+    }
+}
+
+std::string NvidiaInterface::VideoTypeToString(FLIR_VIDEO val) {
+    if(val == VIDEO_MONO16) {
+        return "Mono 16";
+    }
+    if(val == VIDEO_MONO8) {
+        return "Mono 8";
+    }
+    if(val == VIDEO_COLOR) {
+        return "Color";
+    }
+    if(val == VIDEO_ANALOG) {
+        return "Analog";
+    }
 }
 
 int main(int argc, char **argv) {

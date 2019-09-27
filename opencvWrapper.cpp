@@ -38,6 +38,13 @@ void OpencvWrapper::getFrame(uint8_t *data) {
     memcpy(data, imgBuffer, width * height * bytesPerPixel * sizeof(uint8_t));
 }
 
+void OpencvWrapper::getTelemetry(uint8_t *data) {
+    if(!telemetry) {
+        return;
+    }
+    memcpy(data, telemetry, width * bytesPerPixel * sizeof(uint8_t));
+}
+
 void OpencvWrapper::display() {
     cv::imshow("Boson", img);
     cv::waitKey(1);
@@ -77,6 +84,11 @@ void OpencvWrapper::recordFrame() {
 
 void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
     int serialStart = 2;
+
+    if(!telemetry) {
+        telemetry = new uint8_t[stride];
+    }
+    memcpy(telemetry, data, stride * sizeof(uint8_t));
 
     serialNumber = 0;
     for (size_t i = 0; i < 4; i++) {

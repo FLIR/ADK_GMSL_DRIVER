@@ -24,9 +24,9 @@ void CommandListener::listen() {
                 response = interface->getSerialNumber();
                 printf("Serial number: %d\n", response);
             } else if(boost::iequals(userInput, "w")) {
-                interface->setColors(WHITE_HOT);
+                interface->setColors(COLOR_WHITEHOT);
             } else if(boost::iequals(userInput, "b")) {
-                interface->setColors(BLACK_HOT);
+                interface->setColors(COLOR_BLACKHOT);
             } else if(boost::iequals(userInput, "fa")) {
                 interface->setFfcMode(AUTO_FFC);
             } else if(boost::iequals(userInput, "fm")) {
