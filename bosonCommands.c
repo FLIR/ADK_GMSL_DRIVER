@@ -1,5 +1,7 @@
 #include <string.h>
 
+#include "Client_API.h"
+#include "UART_Connector.h"
 #include "os_common.h"
 #include "log_utils.h"
 #include "opencvConnector.h"
@@ -144,8 +146,14 @@ RunVoidCommand(uint32_t i2cDevice, uint32_t sensorAddress, uint16_t *cmdBody,
 
 NvMediaStatus
 TriggerShutter(uint32_t i2cDevice, uint32_t sensorAddress) {
-    uint16_t cmdBody[4] = {0x00, 0x05, 0x00, 0x07};
-    return RunVoidCommand(i2cDevice, sensorAddress, cmdBody, NULL);    
+    FLR_RESULT result = Initialize(0, 921600);
+    if(result) {
+        printf("Error: failed to initialize\n");
+    }
+    bosonRunFFC();
+    Close();
+    // uint16_t cmdBody[4] = {0x00, 0x05, 0x00, 0x07};
+    // return RunVoidCommand(i2cDevice, sensorAddress, cmdBody, NULL);    
 }
 
 NvMediaStatus

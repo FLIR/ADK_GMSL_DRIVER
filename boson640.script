@@ -174,3 +174,7 @@ D8 00 17
 D8 00 89
 D8 00 AE # end flag
 D8 09 00 # turns on transmitter
+
+# reset receive queue
+D8 0A 02
+D8 0A 00

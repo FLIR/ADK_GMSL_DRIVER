@@ -170,3 +170,7 @@ D8 00 58
 D8 00 23
 D8 00 AE # end signal
 D8 09 00
+
+# reset receive queue
+D8 0A 02
+D8 0A 00

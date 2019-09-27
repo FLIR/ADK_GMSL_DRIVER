@@ -11,7 +11,7 @@ include ../make/nvdefs.mk
 TARGETS = nvmimg_cc
 
 CFLAGS   = $(NV_PLATFORM_OPT) $(NV_PLATFORM_CFLAGS)
-CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -std=c++11 -ggdb -I. -I../utils
+CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -std=c++11 -ggdb -I. -I../utils -I../BosonSDK/ClientFiles_C -I../BosonSDK/FSLP_Nvidia/src/inc
 LDFLAGS  = $(NV_PLATFORM_SDK_LIB) $(NV_PLATFORM_TARGET_LIB) $(NV_PLATFORM_LDFLAGS)
 
 OBJS   := main.o
@@ -34,6 +34,8 @@ OBJS   += ../utils/thread_utils.o
 
 LDLIBS  := -L.
 LDLIBS  += -lopencvConnector
+LDLIBS	+= -l:C_SDK.so
+LDLIBS 	+= -l:FSLP_64.so
 LDLIBS	+= -L ../cv_install/lib
 LDLIBS	+= -lopencv_imgcodecs
 LDLIBS  += -L ../utils

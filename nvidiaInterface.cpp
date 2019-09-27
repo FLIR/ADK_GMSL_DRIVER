@@ -6,9 +6,16 @@
 #include "nvidiaInterface.h"
 
 extern "C" {
+    #include <stdbool.h>
+    #include "Client_API.h"
+    #include "UART_Connector.h"
     #include "opencvConnector.h"
     #include "helpers.h"
 }
+
+// temporarily hard-code I2C port
+#define I2C_PORT 0
+#define BAUD_RATE 921600
 
 using namespace BosonAPI;
 
@@ -23,9 +30,12 @@ CommandFromInt(uint16_t *dst, uint32_t src) {
 
 NvidiaInterface::NvidiaInterface() {
     mainCtx.quit = 0;
+    Initialize(I2C_PORT, BAUD_RATE);
 }
 
-NvidiaInterface::~NvidiaInterface() {}
+NvidiaInterface::~NvidiaInterface() {
+    Close();
+}
 
 void NvidiaInterface::run(CmdArgs args) {
     TestArgs cargs;
@@ -124,7 +134,7 @@ void NvidiaInterface::ffc() {
         return;
     }
 
-    TriggerShutter(i2cDevice, sensorAddress);
+    bosonRunFFC();
 }
 
 void NvidiaInterface::toggleHeater() {
@@ -142,10 +152,10 @@ uint32_t NvidiaInterface::getSerialNumber() {
         return 0;
     }
 
-    uint32_t *sn;
-    GetSerialNumber(i2cDevice, sensorAddress, sn);
+    uint32_t sn = 0;
+    FLR_RESULT result = bosonGetCameraSN(&sn);
 
-    return *sn;
+    return sn;
 }
 
 void NvidiaInterface::setColors(BosonColor color) {
