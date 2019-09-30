@@ -13,8 +13,6 @@ extern "C" {
     #include "helpers.h"
 }
 
-// temporarily hard-code I2C port
-#define I2C_PORT 0
 #define BAUD_RATE 921600
 
 using namespace BosonAPI;
@@ -30,7 +28,6 @@ CommandFromInt(uint16_t *dst, uint32_t src) {
 
 NvidiaInterface::NvidiaInterface() {
     mainCtx.quit = 0;
-    Initialize(I2C_PORT, BAUD_RATE);
 }
 
 NvidiaInterface::~NvidiaInterface() {
@@ -60,17 +57,13 @@ void NvidiaInterface::run(CmdArgs args) {
 }
 
 void NvidiaInterface::run(TestArgs *args) {
-    CommandListener listener(this);
-
     if(args->wrregs.isUsed) {
         getI2CInfo(args->wrregs.stringValue, &i2cDevice, &sensorAddress);
     }
 
-    std::thread mainThread(Run, args, &mainCtx);
-    std::thread listenerThread(&CommandListener::listen, &listener);
-    mainThread.join();
-    listener.stop();
-    listenerThread.join();
+    Initialize(i2cDevice, BAUD_RATE);
+
+    Run(args, &mainCtx);
 }
 
 bool NvidiaInterface::isRunning() {
@@ -393,16 +386,24 @@ std::string NvidiaInterface::VideoTypeToString(FLIR_VIDEO val) {
 }
 
 int main(int argc, char **argv) {
-    NvidiaInterface interface;
+    NvidiaInterface *interface = new NvidiaInterface();
     TestArgs allArgs;
+
+    CommandListener listener(interface);
 
     memset(&allArgs, 0, sizeof(TestArgs));
     if (IsFailed(ParseArgs(argc, argv, &allArgs))) {
         return -1;
     }
     
-    interface.run(&allArgs);
+    std::thread mainThread([interface, allArgs]
+        {interface->run((TestArgs*)&allArgs);});
+    std::thread listenerThread(&CommandListener::listen, &listener);
+    mainThread.join();
+    listener.stop();
+    listenerThread.join();
 
+    delete interface;
     // for running with no command line arguments
     // CmdArgs args;
     // memset(&args, 0, sizeof(CmdArgs));
@@ -410,4 +411,6 @@ int main(int argc, char **argv) {
     // args.logLevel = 0;
     // args.regFile = "boson640.script";
     // interface.run(args);
+
+    return 0;
 }
