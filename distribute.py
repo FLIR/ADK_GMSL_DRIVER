@@ -21,7 +21,7 @@ mkdir(app_folder)
 for f in list_of_files:
     shutil.copy(f, app_folder)
 
-folders = 'cv_install include make toolchains utils'.split()
+folders = 'cv_install include make toolchains utils BosonSDK'.split()
 for folder in folders:
     shutil.copytree(os.path.join('..', folder),
         os.path.join(dist_folder, folder))

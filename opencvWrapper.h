@@ -13,15 +13,25 @@ class OpencvWrapper {
     public:
         OpencvWrapper(int width, int height, int bytesPerPixel);
         ~OpencvWrapper();
+        // hello world display for testing openCV operability
         void hello();
+        // saves new frame to object state
         void sendFrame(uint8_t *data);
-        void getFrame(uint8_t *data);
-        void getTelemetry(uint8_t *data);
-        void display();
-        void startRecording(int fps, std::string filename);
-        void stopRecording();
-        void recordFrame();
+        // saves telemetry data to object state
         void sendTelemetry(uint8_t *data, int stride);
+        // returns a copy of the current frame data
+        void getFrame(uint8_t *data);
+        // returns a copy of the telemetry data
+        void getTelemetry(uint8_t *data);
+        // sends frame to openCV display window
+        void display();
+        // starts recording video
+        void startRecording(int fps, std::string filename);
+        // stops recording video
+        void stopRecording();
+        // writes frame to video
+        void recordFrame();
+        // gets serial number from telemetry data
         uint32_t getSerialNumber();
     private:
         int width, height, bytesPerPixel;

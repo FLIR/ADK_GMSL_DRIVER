@@ -55,6 +55,8 @@ This will run the camera in 8-bit video mode and display with an OpenCV window. 
 ## Further Development
 This code provides a C++ interface for interacting with the Nvidia backend. The NvidiaInterface (nvidiaInterface.h) object provides a set of functions for interacting with the camera.
 
+Use the `run` method in NvidiaInterface to display streaming video in an OpenCV window. Run `CommandListener::listen` in a separate thread to allow for sending commands via terminal.
+
 ## Getting help
 Please contact Anil Dhurjaty (anil.dhurjaty@flir.com), Kelsey Judd (kelsey.judd@flir.com), or Andres Prieto-Moreno (andres.Prieto-Moreno@flir.com) for any technical questions.
 
