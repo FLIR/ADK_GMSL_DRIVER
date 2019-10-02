@@ -11,6 +11,7 @@ extern "C" {
     #include "UART_Connector.h"
     #include "opencvConnector.h"
     #include "helpers.h"
+    #include "log_utils.h"
 }
 
 #define BAUD_RATE 921600

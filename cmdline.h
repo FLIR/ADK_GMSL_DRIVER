@@ -16,7 +16,6 @@
 #include "nvmedia_surface.h"
 #include "nvmedia_common.h"
 #include "misc_utils.h"
-#include "sensor_info.h"
 
 #define MIN_BUFFER_POOL_SIZE    5
 #define MAX_BUFFER_POOL_SIZE    NVMEDIA_MAX_CAPTURE_FRAME_BUFFERS

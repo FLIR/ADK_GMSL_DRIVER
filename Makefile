@@ -8,7 +8,7 @@
 
 include ../make/nvdefs.mk
 
-TARGETS = nvmimg_cc
+TARGETS = nvidiaBoson
 
 CFLAGS   = $(NV_PLATFORM_OPT) $(NV_PLATFORM_CFLAGS)
 CPPFLAGS = $(NV_PLATFORM_SDK_INC) $(NV_PLATFORM_CPPFLAGS) -std=c++11 -ggdb -I. -I../utils -I../BosonSDK/ClientFiles_C -I../BosonSDK/FSLP_Nvidia/src/inc
@@ -61,7 +61,7 @@ endif
 include ../make/nvdefs.mk
 
 $(TARGETS): $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(LD) $(LDFLAGS) -v -o $@ $^ $(LDLIBS)
 
 clean clobber:
 	rm -rf $(OBJS) $(TARGETS)

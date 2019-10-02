@@ -7,17 +7,20 @@ This is the NVIDIA-Boson SDK. This provides a set of functions to visualize Boso
 
 ### Host machine
 
-- Ubuntu >= 16.04 (may work on lower versions - untested)
+- Ubuntu 16.04
 - aarch64 cross-compilation tools and dependencies
+
+Download and install the [Nvidia SDK manager](https://developer.nvidia.com/nvidia-sdk-manager). Install Drive Software 9.0 on the host machine
+
+Install aditional dependencies
 ```
 > sudo apt-get update
-> sudo apt-get install gcc g++ make gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-> sudo apt-get install build-essential autoconf libtool cmake pkg-config git python-dev swig3.0 libpcre3-dev nodejs-dev
+> sudo apt-get install libboost-all-dev
 ```
 ### Target machine
 
 - Nvidia Drive AGX/Xavier
-    - Ubuntu >= 16.04
+    - Ubuntu 16.04
     - aarch64 CPU architecture
 
 ## Target machine setup
@@ -57,11 +60,32 @@ This code provides a C++ interface for interacting with the Nvidia backend. The 
 
 Use the `run` method in NvidiaInterface to display streaming video in an OpenCV window. Run `CommandListener::listen` in a separate thread to allow for sending commands via terminal.
 
+### Important files to look at
+- nvidiaInterface.cpp
+    - File that includes the main entry point for the executable
+    - Contains interface for communication with the Boson (frame, telemetry, I2C functions)
+    - If you would like to expand the supported I2C functions, the Boson SDK functions are in Client_API.c in the BosonSDK/ClientFiles_C folder. Simply wrap the desired function in an NvidiaInterface method. 
+- main.c
+    - Entry point for Nvidia C functions
+    - `Run` function starts an infinite loop getting and sending frames to OpenCV
+- opencvWrapper.cpp
+    - Provides functions for interacting with OpenCV
+- opencvConnector.cpp
+    - Provides a C interface for interacting with the OpenCV wrapper
+
+## Troubleshooting
+In testing, I noticed that the Nvidia SDK Manager does not always create a host Drive SDK folder with libraries. If you are getting the error:
+```
+/usr/lib/gcc-cross/aarch64-linux-gnu/5/../../../../aarch64-linux-gnu/bin/ld: cannot find -lnvmedia
+```
+or something like it on build, then check that the folder `$(HOME)/nvidia/nvidia_sdk/DRIVE_Software_9.0_Linux_hyperion_E3550/DriveSDK` exists. If it does not, then download the [Drive SDK](https://novacoast-my.sharepoint.com/:f:/p/adhurjaty/Eplir5iOVfJDr08M_oNcLJgBzYh35G3fwoH_WS7eRKMWjw?e=HMUx4C) and place it in the path `~/nvidia/nvidia_sdk/DRIVE_Software_9.0_Linux_hyperion_E3550` or place it somewhere and change line 9 of ../make/nvdefs.mk
+```
+NV_TOPDIR  = "$(HOME)/nvidia/nvidia_sdk/DRIVE_Software_9.0_Linux_hyperion_E3550/DriveSDK"
+```
+to
+```
+NV_TOPDIR  = "<SDK location>"
+```
+
 ## Getting help
 Please contact Anil Dhurjaty (anil.dhurjaty@flir.com), Kelsey Judd (kelsey.judd@flir.com), or Andres Prieto-Moreno (andres.Prieto-Moreno@flir.com) for any technical questions.
-
-
-
-
-
-
