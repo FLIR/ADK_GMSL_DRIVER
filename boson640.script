@@ -78,6 +78,10 @@
 # this change made frames appear (still have some C errors)
 52 00F0 60  # Assign GMSL2 PHY-A to virtual pipe X
 
+D8 19 09
+D8 18 0F
+; Delay 3000ms
+
 D8 0A 01
 D8 0A 00
 D8 1B 20
