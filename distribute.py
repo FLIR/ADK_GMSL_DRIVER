@@ -10,7 +10,8 @@ def mkdir(path):
         pass
 
 dist_folder = 'dist'
-shutil.rmtree(dist_folder)
+if os.path.exists(dist_folder):
+    shutil.rmtree(dist_folder)
 mkdir(dist_folder)
 
 omit_files = 'distribute.py .gitignore'.split()
@@ -27,7 +28,7 @@ mkdir(app_folder)
 for f in list_of_files:
     shutil.copy(f, app_folder)
 
-folders = 'cv_install include make toolchains utils BosonSDK'.split()
+folders = 'opencv include make toolchains utils BosonSDK'.split()
 for folder in folders:
     shutil.copytree(os.path.join('..', folder),
         os.path.join(dist_folder, folder))

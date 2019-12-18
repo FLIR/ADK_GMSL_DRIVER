@@ -17,6 +17,8 @@ Install aditional dependencies
 > sudo apt-get update
 > sudo apt-get install libboost-all-dev
 ```
+Install opencv dependencies: follow steps 1 - 3 from [these instructions](https://www.learnopencv.com/install-opencv3-on-ubuntu/)
+
 ### Target machine
 
 - Nvidia Drive AGX/Xavier
@@ -27,6 +29,21 @@ Install aditional dependencies
 
 Ensure that you can ssh into the target machine. If you have not yet done so, follow these [instructions](https://developer.nvidia.com/drive/learn/tutorial-ssh) to set up ssh communication
 
+Download the distribution folder and extract it.
+
+## Setting up opencv
+You will need to build opencv for cross-compilation. To do this:
+```
+> cd <dist folder>/opencv
+> cmake -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_TOOLCHAIN_FILE=../../toolchains/aarch64-gnu.toolchain.cmake \
+    -DBUILD_OPENCV_PYTHON3=ON \
+    -DPYTHON_DFAULT_EXECUTABLE=$(which python3) \
+    -DCMAKE_INSTALL_PREFIX=../../cv_install ..
+> make -j$(nproc)
+> make install
+```
+
 ## Building the executable
 
 Open a terminal and navigate to this directory. Then run the build script
@@ -36,9 +53,16 @@ Open a terminal and navigate to this directory. Then run the build script
 > chmod +x build.sh
 > ./build.sh
 ```
-This produces an executable called nvmimg_cc
+This produces an executable called nvidiaBoson
 
 ## Running the executable
+
+If you would like to use `rsync`, you can use the `syncDirs.sh` script. Simply edit the file to change the IP, target username and destination location. Next, run
+```
+./syncDirs.sh
+```
+
+Otherwise you can transfer the contents in the following way:
 
 First, transfer the folder from the host to the target machine
 ```
@@ -51,7 +75,7 @@ Next, on the target machine, move the folder to a useful location
 Then, run the application
 ```
 > cd <name of folder>
-> sudo LD_LIBRARY_PATH=$PWD ./nvmimg_cc -wrregs boson640.script -d 0
+> sudo LD_LIBRARY_PATH=$PWD ./nvidiaBoson -wrregs boson640.script -d 0
 ```
 This will run the camera in 8-bit video mode and display with an OpenCV window. The included boson640.script and boson640_16.script set up the camera for 8-bit and 16-bit video modes respectively. See [here](https://docs.nvidia.com/drive/active/5.1.0.2L/nvvib_docs/index.html#page/DRIVE_OS_Linux_SDK_Development_Guide%2FNvMedia%2Fnvmedia_nvmimg_cc.html%23wwpID0E0PB0HA) for more information on the script file syntax.
 
