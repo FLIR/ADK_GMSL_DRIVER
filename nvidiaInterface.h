@@ -101,6 +101,8 @@ class NvidiaInterface {
         std::string getI2CString(uint32_t cmd);
         // sets command for I2C 
         void setI2CInt(uint32_t cmd, uint32_t val);
+        // captures still image
+        void captureImage(std::string filename);
     private:
         int i2cDevice = -1;
         int sensorAddress = -1;

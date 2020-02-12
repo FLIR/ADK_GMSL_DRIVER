@@ -95,6 +95,15 @@ void Opencv_getTelemetry(uint8_t *telemetry) {
     return opencv->getTelemetry(telemetry);
 }
 
+void Opencv_captureImage(char *filename) {
+    if(!opencv) {
+        LOG_ERR("OpenCV object must be initialized");
+        return;
+    }
+
+    return opencv->saveImage(filename);
+}
+
 #ifdef __cplusplus
 }
 #endif

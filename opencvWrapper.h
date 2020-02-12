@@ -31,6 +31,8 @@ class OpencvWrapper {
         void stopRecording();
         // writes frame to video
         void recordFrame();
+        // saves still image
+        void saveImage(std::string filename);
         // gets serial number from telemetry data
         uint32_t getSerialNumber();
     private:

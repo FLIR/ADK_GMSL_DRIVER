@@ -82,6 +82,10 @@ void OpencvWrapper::recordFrame() {
     recorder.captureFrame();
 }
 
+void OpencvWrapper::saveImage(std::string filename) {
+    cv::imwrite(filename, img);
+}
+
 void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
     int serialStart = 2;
 

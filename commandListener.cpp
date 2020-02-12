@@ -57,6 +57,8 @@ void CommandListener::listen() {
                 interface->startRecording(inputParam);
             } else if(!strcasecmp(userInput.c_str(), "r")) {
                 interface->stopRecording();
+            } else if(sscanf(userInput.c_str(), "s %s", inputParam)) {
+                interface->captureImage(inputParam);
             } else {
                 printf("%s: Unsupported input: %s\n", __func__, userInput.c_str());
             }

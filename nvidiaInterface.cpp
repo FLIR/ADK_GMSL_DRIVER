@@ -353,6 +353,15 @@ void NvidiaInterface::stopRecording() {
     Opencv_stopRecording();
 }
 
+void NvidiaInterface::captureImage(std::string filename) {
+    if(i2cDevice == -1 || sensorAddress == -1) {
+        LOG_ERR("Application must be running to use command");
+        return;
+    }
+
+    Opencv_captureImage((char *)filename.c_str());
+}
+
 std::string NvidiaInterface::FFCModeToString(FLIR_FFCMODE val) {
     if(val == MANUAL_FFC) {
         return "Manual";
