@@ -83,7 +83,16 @@ void OpencvWrapper::recordFrame() {
 }
 
 void OpencvWrapper::saveImage(std::string filename) {
-    cv::imwrite(filename, img);
+    uint8_t *tempBuffer = (uint8_t*)malloc(width * height * bytesPerPixel * sizeof(uint8_t));
+    memcpy(tempBuffer, imgBuffer, width * height * bytesPerPixel);
+    int pixelType = CV_8UC1;
+    if(bytesPerPixel == 2) {
+        pixelType = CV_16UC1;
+    }
+    cv::Mat newImg(height, width, pixelType,
+        reinterpret_cast<void *>(tempBuffer));
+    cv::imwrite(filename, newImg);
+    delete tempBuffer;
 }
 
 void OpencvWrapper::sendTelemetry(uint8_t *data, int stride) {
