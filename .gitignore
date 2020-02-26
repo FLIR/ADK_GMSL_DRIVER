@@ -5,3 +5,4 @@ build/
 nvidiaBoson
 testbed/
 dist/
+*.py

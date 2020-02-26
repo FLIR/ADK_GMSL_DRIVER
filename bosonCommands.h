@@ -1,3 +1,8 @@
+/* NVIDIA CORPORATION gave permission to FLIR Systems, Inc to modify this code
+  * and distribute it as part of the ADAS GMSL Kit.
+  * http://www.flir.com/
+  * October-2019
+*/
 #ifndef __BOSON_COMMANDS_H__
 #define __BOSON_COMMANDS_H__
 

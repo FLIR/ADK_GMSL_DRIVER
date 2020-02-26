@@ -1,3 +1,8 @@
+/* NVIDIA CORPORATION gave permission to FLIR Systems, Inc to modify this code
+  * and distribute it as part of the ADAS GMSL Kit.
+  * http://www.flir.com/
+  * October-2019
+*/
 /* Copyright (c) 2016-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * NVIDIA CORPORATION and its licensors retain all intellectual property
